@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,26 +7,38 @@ import {
   SafeAreaView,
   Alert,
   ScrollView,
-} from 'react-native';
-import ImageViewer from '../components/ImageViewer';
-import { 
-  ImageData, 
-  MeasurementPoint, 
-  MeasurementType, 
-  Point, 
+} from "react-native";
+import ImageViewer from "../components/ImageViewer";
+import {
+  ImageData,
+  MeasurementPoint,
+  MeasurementType,
+  Point,
   CalibrationData,
-  MeasurementResults 
-} from '../types';
-import { calculateMeasurements, validateMeasurementPoints } from '../utils/measurements';
+  MeasurementResults,
+} from "../types";
+import {
+  calculateMeasurements,
+  validateMeasurementPoints,
+} from "../utils/measurements";
 
 interface MeasurementScreenProps {
   imageData: ImageData;
   calibrationData: CalibrationData;
-  onMeasurementComplete: (results: MeasurementResults, points: MeasurementPoint[]) => void;
+  onMeasurementComplete: (
+    results: MeasurementResults,
+    points: MeasurementPoint[]
+  ) => void;
   onBack: () => void;
 }
 
-type MeasurementStep = 'leftPupil' | 'rightPupil' | 'bridgeCenter' | 'leftLensBottom' | 'rightLensBottom' | 'complete';
+type MeasurementStep =
+  | "leftPupil"
+  | "rightPupil"
+  | "bridgeCenter"
+  | "leftLensBottom"
+  | "rightLensBottom"
+  | "complete";
 
 const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   imageData,
@@ -34,53 +46,55 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   onMeasurementComplete,
   onBack,
 }) => {
-  const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
-  const [currentStep, setCurrentStep] = useState<MeasurementStep>('leftPupil');
+  const [measurementPoints, setMeasurementPoints] = useState<
+    MeasurementPoint[]
+  >([]);
+  const [currentStep, setCurrentStep] = useState<MeasurementStep>("leftPupil");
 
   const stepInfo = {
     leftPupil: {
-      title: 'Pupila Esquerda',
-      instruction: 'Toque no centro da pupila esquerda',
+      title: "Pupila Esquerda",
+      instruction: "Toque no centro da pupila esquerda",
       type: MeasurementType.LEFT_PUPIL,
     },
     rightPupil: {
-      title: 'Pupila Direita',
-      instruction: 'Toque no centro da pupila direita',
+      title: "Pupila Direita",
+      instruction: "Toque no centro da pupila direita",
       type: MeasurementType.RIGHT_PUPIL,
     },
     bridgeCenter: {
-      title: 'Centro da Ponte',
-      instruction: 'Toque no centro da ponte nasal (meio da armação)',
+      title: "Centro da Ponte",
+      instruction: "Toque no centro da ponte nasal (meio da armação)",
       type: MeasurementType.BRIDGE_CENTER,
     },
     leftLensBottom: {
-      title: 'Base da Lente Esquerda',
-      instruction: 'Toque na linha inferior da lente esquerda',
+      title: "Base da Lente Esquerda",
+      instruction: "Toque na linha inferior da lente esquerda",
       type: MeasurementType.LEFT_LENS_BOTTOM,
     },
     rightLensBottom: {
-      title: 'Base da Lente Direita',
-      instruction: 'Toque na linha inferior da lente direita',
+      title: "Base da Lente Direita",
+      instruction: "Toque na linha inferior da lente direita",
       type: MeasurementType.RIGHT_LENS_BOTTOM,
     },
     complete: {
-      title: 'Concluído',
-      instruction: 'Todas as medições foram coletadas',
+      title: "Concluído",
+      instruction: "Todas as medições foram coletadas",
       type: MeasurementType.LEFT_PUPIL, // Valor dummy
     },
   };
 
   const stepOrder: MeasurementStep[] = [
-    'leftPupil',
-    'rightPupil', 
-    'bridgeCenter',
-    'leftLensBottom',
-    'rightLensBottom',
-    'complete'
+    "leftPupil",
+    "rightPupil",
+    "bridgeCenter",
+    "leftLensBottom",
+    "rightLensBottom",
+    "complete",
   ];
 
   const handleAddPoint = (point: Point) => {
-    if (currentStep === 'complete') return;
+    if (currentStep === "complete") return;
 
     const stepData = stepInfo[currentStep];
     const newPoint: MeasurementPoint = {
@@ -92,9 +106,11 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     };
 
     // Remove ponto anterior do mesmo tipo se existir
-    const filteredPoints = measurementPoints.filter(p => p.type !== stepData.type);
+    const filteredPoints = measurementPoints.filter(
+      (p) => p.type !== stepData.type
+    );
     const updatedPoints = [...filteredPoints, newPoint];
-    
+
     setMeasurementPoints(updatedPoints);
 
     // Avança para o próximo passo
@@ -114,18 +130,18 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   const handleCalculateMeasurements = () => {
     if (!validateMeasurementPoints(measurementPoints)) {
       Alert.alert(
-        'Medições Incompletas',
-        'Por favor, marque todos os pontos necessários antes de continuar.'
+        "Medições Incompletas",
+        "Por favor, marque todos os pontos necessários antes de continuar."
       );
       return;
     }
 
     const results = calculateMeasurements(measurementPoints, calibrationData);
-    
+
     if (!results) {
       Alert.alert(
-        'Erro no Cálculo',
-        'Não foi possível calcular as medições. Verifique se todos os pontos foram marcados corretamente.'
+        "Erro no Cálculo",
+        "Não foi possível calcular as medições. Verifique se todos os pontos foram marcados corretamente."
       );
       return;
     }
@@ -135,34 +151,34 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
   const handleReset = () => {
     Alert.alert(
-      'Recomeçar Medições',
-      'Tem certeza de que deseja apagar todos os pontos e recomeçar?',
+      "Recomeçar Medições",
+      "Tem certeza de que deseja apagar todos os pontos e recomeçar?",
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Recomeçar', 
-          style: 'destructive',
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Recomeçar",
+          style: "destructive",
           onPress: () => {
             setMeasurementPoints([]);
-            setCurrentStep('leftPupil');
-          }
-        }
+            setCurrentStep("leftPupil");
+          },
+        },
       ]
     );
   };
 
   const getCurrentStepNumber = () => {
     const currentIndex = stepOrder.indexOf(currentStep);
-    return currentStep === 'complete' ? 5 : currentIndex + 1;
+    return currentStep === "complete" ? 5 : currentIndex + 1;
   };
 
   const getPointColor = (pointType: MeasurementType) => {
-    const hasPoint = measurementPoints.some(p => p.type === pointType);
+    const hasPoint = measurementPoints.some((p) => p.type === pointType);
     const currentStepType = stepInfo[currentStep]?.type;
-    
-    if (pointType === currentStepType) return '#FF6B6B'; // Vermelho para ponto atual
-    if (hasPoint) return '#4ECDC4'; // Verde para pontos já marcados
-    return '#DDD'; // Cinza para pontos não marcados
+
+    if (pointType === currentStepType) return "#FF6B6B"; // Vermelho para ponto atual
+    if (hasPoint) return "#4ECDC4"; // Verde para pontos já marcados
+    return "#DDD"; // Cinza para pontos não marcados
   };
 
   return (
@@ -179,13 +195,13 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
       <View style={styles.instructionContainer}>
         <Text style={styles.stepInfo}>
-          Passo {getCurrentStepNumber()}/5
+          Passo {getCurrentStepNumber()}/5 • {measurementPoints.length}/5 pontos
         </Text>
         <Text style={styles.instruction}>
           {stepInfo[currentStep].instruction}
         </Text>
         <Text style={styles.subInstruction}>
-          Use zoom e pan para posicionar com máxima precisão
+          Use zoom (até 6x) e pan para posicionar com máxima precisão
         </Text>
       </View>
 
@@ -194,64 +210,82 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
           imageUri={imageData.uri}
           measurementPoints={measurementPoints}
           onAddPoint={handleAddPoint}
-          isPointAddingMode={currentStep !== 'complete'}
+          isPointAddingMode={currentStep !== "complete"}
         />
       </View>
 
       <View style={styles.bottomContainer}>
-        <ScrollView style={styles.pointsList} showsVerticalScrollIndicator={false}>
-          <Text style={styles.pointsTitle}>Pontos de Medição</Text>
-          
-          {Object.entries(stepInfo).filter(([key]) => key !== 'complete').map(([key, info]) => {
-            const hasPoint = measurementPoints.some(p => p.type === info.type);
-            const isCurrent = key === currentStep;
-            
-            return (
-              <View key={key} style={[
-                styles.pointItem,
-                isCurrent && styles.currentPointItem,
-                hasPoint && styles.completedPointItem
-              ]}>
-                <View style={[
-                  styles.pointIndicator,
-                  { backgroundColor: getPointColor(info.type) }
-                ]} />
-                <Text style={[
-                  styles.pointText,
-                  isCurrent && styles.currentPointText,
-                  hasPoint && styles.completedPointText
-                ]}>
-                  {info.title}
-                </Text>
-                {hasPoint && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-            );
-          })}
-        </ScrollView>
+        {/* Lista compacta de progresso */}
+        <View style={styles.progressContainer}>
+          <Text style={styles.pointsTitle}>Progresso das Medições</Text>
+          <View style={styles.progressGrid}>
+            {Object.entries(stepInfo)
+              .filter(([key]) => key !== "complete")
+              .map(([key, info]) => {
+                const hasPoint = measurementPoints.some(
+                  (p) => p.type === info.type
+                );
+                const isCurrent = key === currentStep;
 
+                return (
+                  <View
+                    key={key}
+                    style={[
+                      styles.progressItem,
+                      isCurrent && styles.currentProgressItem,
+                      hasPoint && styles.completedProgressItem,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.progressIndicator,
+                        { backgroundColor: getPointColor(info.type) },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.progressItemText,
+                        isCurrent && styles.currentProgressText,
+                        hasPoint && styles.completedProgressText,
+                      ]}
+                    >
+                      {info.title}
+                    </Text>
+                    {hasPoint && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                );
+              })}
+          </View>
+        </View>
+
+        {/* Botões sempre visíveis */}
         <View style={styles.buttonContainer}>
-          {currentStep !== 'leftPupil' && currentStep !== 'complete' && (
-            <TouchableOpacity 
-              style={styles.previousButton} 
+          {currentStep !== "leftPupil" && currentStep !== "complete" && (
+            <TouchableOpacity
+              style={styles.previousButton}
               onPress={handlePreviousStep}
             >
               <Text style={styles.previousButtonText}>← Anterior</Text>
             </TouchableOpacity>
           )}
 
-          {currentStep === 'complete' && (
-            <TouchableOpacity 
+          {currentStep === "complete" && (
+            <TouchableOpacity
               style={[
                 styles.calculateButton,
-                !validateMeasurementPoints(measurementPoints) && styles.disabledButton
-              ]} 
+                !validateMeasurementPoints(measurementPoints) &&
+                  styles.disabledButton,
+              ]}
               onPress={handleCalculateMeasurements}
               disabled={!validateMeasurementPoints(measurementPoints)}
             >
-              <Text style={[
-                styles.calculateButtonText,
-                !validateMeasurementPoints(measurementPoints) && styles.disabledButtonText
-              ]}>
+              <Text
+                style={[
+                  styles.calculateButtonText,
+                  !validateMeasurementPoints(measurementPoints) &&
+                    styles.disabledButtonText,
+                ]}
+              >
                 Calcular Medições
               </Text>
             </TouchableOpacity>
@@ -265,144 +299,153 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   backButton: {
     padding: 5,
   },
   backButtonText: {
-    color: '#007AFF',
+    color: "#007AFF",
     fontSize: 16,
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   resetButton: {
     padding: 5,
   },
   resetButtonText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 14,
   },
   instructionContainer: {
-    backgroundColor: '#fff',
-    padding: 20,
-    margin: 20,
-    borderRadius: 10,
-    shadowColor: '#000',
+    backgroundColor: "#fff",
+    padding: 12,
+    marginHorizontal: 10,
+    marginBottom: 8,
+    borderRadius: 8,
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 2,
+    elevation: 3,
   },
   stepInfo: {
     fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
+    color: "#007AFF",
+    fontWeight: "600",
     marginBottom: 5,
   },
   instruction: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 5,
   },
   subInstruction: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   imageContainer: {
     flex: 1,
-    margin: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    marginHorizontal: 8,
+    marginBottom: 8,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 2,
+    elevation: 3,
   },
   bottomContainer: {
-    backgroundColor: '#fff',
-    maxHeight: 200,
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
+    paddingBottom: 25, // Margem para evitar conflito com botões do sistema
   },
-  pointsList: {
+  progressContainer: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  progressGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  progressItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "48%",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginBottom: 6,
+    borderRadius: 6,
+    backgroundColor: "#f9f9f9",
+  },
+  currentProgressItem: {
+    backgroundColor: "#E3F2FD",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  completedProgressItem: {
+    backgroundColor: "#E8F5E8",
+  },
+  progressIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  progressItemText: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 15,
+    fontSize: 12,
+    color: "#666",
+  },
+  currentProgressText: {
+    color: "#007AFF",
+    fontWeight: "600",
+  },
+  completedProgressText: {
+    color: "#4CAF50",
+    fontWeight: "500",
   },
   pointsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 15,
-  },
-  pointItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 5,
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
-  },
-  currentPointItem: {
-    backgroundColor: '#E3F2FD',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  completedPointItem: {
-    backgroundColor: '#E8F5E8',
-  },
-  pointIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  pointText: {
-    flex: 1,
     fontSize: 14,
-    color: '#666',
-  },
-  currentPointText: {
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  completedPointText: {
-    color: '#4CAF50',
-    fontWeight: '500',
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 10,
   },
   checkmark: {
-    color: '#4CAF50',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: "#4CAF50",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   buttonContainer: {
-    flexDirection: 'row',
-    padding: 20,
-    gap: 15,
+    flexDirection: "row",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    gap: 10,
   },
   previousButton: {
     flex: 1,
@@ -410,32 +453,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#007AFF',
-    alignItems: 'center',
+    borderColor: "#007AFF",
+    alignItems: "center",
   },
   previousButtonText: {
-    color: '#007AFF',
+    color: "#007AFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   calculateButton: {
     flex: 2,
-    backgroundColor: '#4CAF50',
+    backgroundColor: "#4CAF50",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   calculateButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   disabledButtonText: {
-    color: '#999',
+    color: "#999",
   },
 });
 

@@ -135,7 +135,7 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           {getInstructionDetails()}
         </Text>
         <Text style={styles.subInstruction}>
-          Use zoom (até 5x) e pan para máxima precisão
+          Use zoom (até 6x) e pan para máxima precisão
         </Text>
         {lastTapFeedback ? (
           <Text style={styles.feedbackText}>{lastTapFeedback}</Text>
@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    marginBottom: 20, // Removed to avoid bottom margin
   },
   header: {
     flexDirection: 'row',
@@ -234,9 +235,9 @@ const styles = StyleSheet.create({
   },
   instructionContainer: {
     backgroundColor: '#fff',
-    padding: 15,
-    marginHorizontal: 10,
-    marginBottom: 10,
+    padding: 10, // Reduzido de 15 para 10
+    marginHorizontal: 5, // Reduzido de 10 para 5
+    marginBottom: 5, // Reduzido de 10 para 5
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -272,8 +273,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flex: 1,
-    margin: 10,
-    marginBottom: 15,
+    margin: 5, // Reduzido de 10 para 5
+    marginBottom: 8, // Reduzido de 15 para 8
     backgroundColor: '#fff',
     borderRadius: 10,
     overflow: 'hidden',
@@ -288,12 +289,12 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     backgroundColor: '#fff',
-    padding: 20,
+    padding: 15, // Reduzido de 20 para 15
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
   },
   pointsInfo: {
-    marginBottom: 20,
+    marginBottom: 15, // Reduzido de 20 para 15
   },
   pointsText: {
     fontSize: 16,
