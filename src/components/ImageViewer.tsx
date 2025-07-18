@@ -18,7 +18,7 @@ import Animated, {
   useSharedValue,
   runOnJS,
 } from 'react-native-reanimated';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Line, G } from 'react-native-svg';
 import { Point } from '../types';
 
 interface ImageViewerProps {
@@ -38,7 +38,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   
   // Assume um aspect ratio 4:3 para a imagem
   const imageAspectRatio = 4 / 3;
-  const displayWidth = screenWidth * 0.9;
+  const displayWidth = screenWidth * 0.95; // Aumentado de 0.9 para 0.95
   const displayHeight = displayWidth / imageAspectRatio;
   
   // Dimensões reais da imagem (será ajustado quando soubermos as dimensões reais)
@@ -131,6 +131,63 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     return { x: screenX, y: screenY };
   };
 
+  // Renderiza um ponto de mira (círculo + cruz)
+  const renderCrosshair = (point: Point & { id: string }, index: number) => {
+    const screenPoint = imageToScreenCoordinates(point);
+    
+    // Tamanho base da mira que diminui com o zoom
+    const baseSize = 12;
+    const crosshairSize = baseSize / Math.max(1, scale.value * 0.7);
+    const circleRadius = crosshairSize * 0.8;
+    const crossLength = crosshairSize * 1.2;
+    
+    // Cores diferentes para pontos esquerdo e direito
+    const strokeColor = index === 0 ? '#ff4444' : '#4444ff';
+    const fillColor = index === 0 ? '#ff444440' : '#4444ff40';
+    
+    return (
+      <G key={point.id}>
+        {/* Círculo externo */}
+        <Circle
+          cx={screenPoint.x}
+          cy={screenPoint.y}
+          r={circleRadius}
+          fill={fillColor}
+          stroke={strokeColor}
+          strokeWidth={2}
+        />
+        
+        {/* Cruz horizontal */}
+        <Line
+          x1={screenPoint.x - crossLength}
+          y1={screenPoint.y}
+          x2={screenPoint.x + crossLength}
+          y2={screenPoint.y}
+          stroke={strokeColor}
+          strokeWidth={2}
+        />
+        
+        {/* Cruz vertical */}
+        <Line
+          x1={screenPoint.x}
+          y1={screenPoint.y - crossLength}
+          x2={screenPoint.x}
+          y2={screenPoint.y + crossLength}
+          stroke={strokeColor}
+          strokeWidth={2}
+        />
+        
+        {/* Ponto central */}
+        <Circle
+          cx={screenPoint.x}
+          cy={screenPoint.y}
+          r={1.5}
+          fill={strokeColor}
+        />
+      </G>
+    );
+  };
+
   // Função simplificada para tap usando TouchableWithoutFeedback
   const handleSimpleTap = (event: any) => {
     if (!isPointAddingMode) return;
@@ -171,27 +228,14 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
                       ]}
                     />
                     
-                    {/* SVG para desenhar os pontos */}
+                    {/* SVG para desenhar os pontos de mira */}
                     <Svg
                       style={StyleSheet.absoluteFill}
                       width={displayWidth}
                       height={displayHeight}
                       pointerEvents="none"
                     >
-                      {measurementPoints.map((point) => {
-                        const screenPoint = imageToScreenCoordinates(point);
-                        return (
-                          <Circle
-                            key={point.id}
-                            cx={screenPoint.x}
-                            cy={screenPoint.y}
-                            r={8}
-                            fill="red"
-                            stroke="white"
-                            strokeWidth={2}
-                          />
-                        );
-                      })}
+                      {measurementPoints.map((point, index) => renderCrosshair(point, index))}
                     </Svg>
                   </View>
                 </TouchableWithoutFeedback>
@@ -209,9 +253,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f8f8f8',
   },
   imageContainer: {
     overflow: 'hidden',
+    borderRadius: 8,
   },
   image: {
     resizeMode: 'contain',

@@ -99,9 +99,16 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
 
   const getInstructionText = () => {
     if (currentStep === 'left') {
-      return 'Toque na extremidade ESQUERDA do cartão de crédito';
+      return 'Toque na extremidade ESQUERDA do cartão';
     }
-    return 'Toque na extremidade DIREITA do cartão de crédito';
+    return 'Toque na extremidade DIREITA do cartão';
+  };
+
+  const getInstructionDetails = () => {
+    if (currentStep === 'left') {
+      return 'Será marcada com uma mira vermelha 🔴';
+    }
+    return 'Será marcada com uma mira azul 🔵';
   };
 
   const getStepInfo = () => {
@@ -125,7 +132,10 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
         <Text style={styles.stepInfo}>{getStepInfo()}</Text>
         <Text style={styles.instruction}>{getInstructionText()}</Text>
         <Text style={styles.subInstruction}>
-          Use o zoom e pan para posicionar com precisão
+          {getInstructionDetails()}
+        </Text>
+        <Text style={styles.subInstruction}>
+          Use zoom e pan para posicionar com precisão
         </Text>
         {lastTapFeedback ? (
           <Text style={styles.feedbackText}>{lastTapFeedback}</Text>
@@ -146,11 +156,15 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           <Text style={styles.pointsText}>
             Pontos marcados: {measurementPoints.length}/2
           </Text>
-          {measurementPoints.map((point) => (
-            <Text key={point.id} style={styles.pointItem}>
-              • {point.label}
-            </Text>
-          ))}
+          {measurementPoints.map((point, index) => {
+            const isLeft = point.type === MeasurementType.CARD_LEFT;
+            const emoji = isLeft ? '🔴' : '🔵';
+            return (
+              <Text key={point.id} style={styles.pointItem}>
+                {emoji} {point.label}
+              </Text>
+            );
+          })}
         </View>
 
         <View style={styles.buttonContainer}>
@@ -220,8 +234,9 @@ const styles = StyleSheet.create({
   },
   instructionContainer: {
     backgroundColor: '#fff',
-    padding: 20,
-    margin: 20,
+    padding: 15,
+    marginHorizontal: 10,
+    marginBottom: 10,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -257,7 +272,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flex: 1,
-    margin: 20,
+    margin: 10,
+    marginBottom: 15,
     backgroundColor: '#fff',
     borderRadius: 10,
     overflow: 'hidden',
