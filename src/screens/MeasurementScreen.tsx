@@ -201,7 +201,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
           {stepInfo[currentStep].instruction}
         </Text>
         <Text style={styles.subInstruction}>
-          Use zoom e pan para posicionar com máxima precisão
+          Use zoom (até 6x) e pan para posicionar com máxima precisão
         </Text>
       </View>
 

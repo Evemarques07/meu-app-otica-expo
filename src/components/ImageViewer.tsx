@@ -38,7 +38,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 
   // Assume um aspect ratio 4:3 para a imagem
   const imageAspectRatio = 4 / 3;
-  const displayWidth = screenWidth * 0.95; // Aumentado de 0.9 para 0.95
+  const displayWidth = screenWidth * 0.98; // Aumentado de 0.95 para 0.98
   const displayHeight = displayWidth / imageAspectRatio;
 
   // Dimensões reais da imagem (será ajustado quando soubermos as dimensões reais)
@@ -59,8 +59,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       onActive: (event, context: any) => {
         scale.value = Math.max(
           1,
-          Math.min(5, context.startScale * event.scale)
-        ); // Aumentado de 3 para 5
+          Math.min(6, context.startScale * event.scale)
+        ); // Aumentado de 5 para 6
       },
     });
 

@@ -138,8 +138,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.successBanner}>
-          <Image 
-            source={require('../../assets/logoappotica.jpg')} 
+          <Image
+            source={require("../../assets/logoappotica.jpg")}
             style={styles.logoSmall}
             resizeMode="contain"
           />
