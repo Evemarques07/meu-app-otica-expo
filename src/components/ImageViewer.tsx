@@ -56,7 +56,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       context.startScale = scale.value;
     },
     onActive: (event, context: any) => {
-      scale.value = Math.max(1, Math.min(3, context.startScale * event.scale));
+      scale.value = Math.max(1, Math.min(5, context.startScale * event.scale)); // Aumentado de 3 para 5
     },
   });
 
@@ -135,15 +135,15 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   const renderCrosshair = (point: Point & { id: string }, index: number) => {
     const screenPoint = imageToScreenCoordinates(point);
     
-    // Tamanho base da mira que diminui com o zoom
-    const baseSize = 12;
-    const crosshairSize = baseSize / Math.max(1, scale.value * 0.7);
-    const circleRadius = crosshairSize * 0.8;
-    const crossLength = crosshairSize * 1.2;
+    // Tamanho base da mira que diminui com o zoom - agora mais fino
+    const baseSize = 10; // Reduzido de 12 para 10
+    const crosshairSize = baseSize / Math.max(1, scale.value * 0.8); // Aumentado multiplicador para diminuir mais com zoom
+    const circleRadius = crosshairSize * 0.7; // Reduzido de 0.8 para 0.7
+    const crossLength = crosshairSize * 1.4; // Aumentado de 1.2 para 1.4 (cruz mais longa)
     
     // Cores diferentes para pontos esquerdo e direito
     const strokeColor = index === 0 ? '#ff4444' : '#4444ff';
-    const fillColor = index === 0 ? '#ff444440' : '#4444ff40';
+    const fillColor = index === 0 ? '#ff444420' : '#4444ff20'; // Mais transparente
     
     return (
       <G key={point.id}>
@@ -154,7 +154,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           r={circleRadius}
           fill={fillColor}
           stroke={strokeColor}
-          strokeWidth={2}
+          strokeWidth={1} // Reduzido de 2 para 1
         />
         
         {/* Cruz horizontal */}
@@ -164,7 +164,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           x2={screenPoint.x + crossLength}
           y2={screenPoint.y}
           stroke={strokeColor}
-          strokeWidth={2}
+          strokeWidth={1} // Reduzido de 2 para 1
         />
         
         {/* Cruz vertical */}
@@ -174,14 +174,14 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           x2={screenPoint.x}
           y2={screenPoint.y + crossLength}
           stroke={strokeColor}
-          strokeWidth={2}
+          strokeWidth={1} // Reduzido de 2 para 1
         />
         
         {/* Ponto central */}
         <Circle
           cx={screenPoint.x}
           cy={screenPoint.y}
-          r={1.5}
+          r={1} // Reduzido de 1.5 para 1
           fill={strokeColor}
         />
       </G>

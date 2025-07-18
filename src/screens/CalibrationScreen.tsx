@@ -135,7 +135,7 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           {getInstructionDetails()}
         </Text>
         <Text style={styles.subInstruction}>
-          Use zoom e pan para posicionar com precisão
+          Use zoom (até 5x) e pan para máxima precisão
         </Text>
         {lastTapFeedback ? (
           <Text style={styles.feedbackText}>{lastTapFeedback}</Text>
