@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    marginBottom: 20, // Removed to avoid bottom margin
   },
   header: {
     flexDirection: 'row',

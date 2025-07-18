@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ensureCameraPermission, ensureGalleryPermission } from '../utils/permissions';
@@ -77,7 +78,12 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.title}>Capturar Imagem</Text>
+        <Image 
+          source={require('../../assets/logoappotica.jpg')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Medição de Óculos</Text>
         <Text style={styles.subtitle}>
           Para começar a medição, capture uma foto ou selecione da galeria
         </Text>
@@ -155,6 +161,12 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 30,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 15,
+    borderRadius: 50,
   },
   title: {
     fontSize: 28,
