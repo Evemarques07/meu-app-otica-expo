@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,43 +6,51 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Share,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { MeasurementResults } from '../types';
+import { MeasurementResults, ImageData, CalibrationData, MeasurementPoint } from '../types';
+import { shareResultsPDF, shareResultsText } from '../utils/sharing';
 
 interface ResultsScreenProps {
   results: MeasurementResults;
+  imageData?: ImageData;
+  calibrationData?: CalibrationData;
+  measurementPoints?: MeasurementPoint[];
   onStartNew: () => void;
   onBack: () => void;
 }
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({
   results,
+  imageData,
+  calibrationData,
+  measurementPoints,
   onStartNew,
   onBack,
 }) => {
-  const handleShare = async () => {
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingText, setIsGeneratingText] = useState(false);
+
+  const handleSharePDF = async () => {
+    setIsGeneratingPDF(true);
     try {
-      const message = `
-Medições para Óculos - Resultados:
-
-📏 DP (Distância Pupilar Total): ${results.dp} mm
-👁️ DPN Esquerda: ${results.dpnLeft} mm  
-👁️ DPN Direita: ${results.dpnRight} mm
-📐 Altura Óptica Esquerda: ${results.heightLeft} mm
-📐 Altura Óptica Direita: ${results.heightRight} mm
-
-Medido com App de Medição de Óculos
-Data: ${new Date().toLocaleDateString('pt-BR')}
-      `.trim();
-
-      await Share.share({
-        message,
-        title: 'Medições para Óculos',
-      });
+      await shareResultsPDF(results, imageData, calibrationData, measurementPoints);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível compartilhar os resultados.');
+      console.error('Erro ao compartilhar PDF:', error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleShareText = async () => {
+    setIsGeneratingText(true);
+    try {
+      await shareResultsText(results);
+    } catch (error) {
+      console.error('Erro ao compartilhar texto:', error);
+    } finally {
+      setIsGeneratingText(false);
     }
   };
 
@@ -72,9 +80,30 @@ Data: ${new Date().toLocaleDateString('pt-BR')}
           <Text style={styles.backButtonText}>← Voltar</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Resultados</Text>
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <Text style={styles.shareButtonText}>Compartilhar</Text>
-        </TouchableOpacity>
+        <View style={styles.shareButtons}>
+          <TouchableOpacity 
+            style={[styles.shareButton, styles.textShareButton]} 
+            onPress={handleShareText}
+            disabled={isGeneratingText}
+          >
+            {isGeneratingText ? (
+              <ActivityIndicator size="small" color="#007AFF" />
+            ) : (
+              <Text style={styles.shareButtonText}>📱 Texto</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.shareButton, styles.pdfShareButton]} 
+            onPress={handleSharePDF}
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.pdfShareButtonText}>📄 PDF</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -213,11 +242,35 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   shareButton: {
-    padding: 5,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minWidth: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  textShareButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  pdfShareButton: {
+    backgroundColor: '#007AFF',
   },
   shareButtonText: {
     color: '#007AFF',
-    fontSize: 16,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  pdfShareButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   content: {
     flex: 1,

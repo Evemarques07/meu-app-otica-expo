@@ -22,7 +22,7 @@ import { calculateMeasurements, validateMeasurementPoints } from '../utils/measu
 interface MeasurementScreenProps {
   imageData: ImageData;
   calibrationData: CalibrationData;
-  onMeasurementComplete: (results: MeasurementResults) => void;
+  onMeasurementComplete: (results: MeasurementResults, points: MeasurementPoint[]) => void;
   onBack: () => void;
 }
 
@@ -130,7 +130,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       return;
     }
 
-    onMeasurementComplete(results);
+    onMeasurementComplete(results, measurementPoints);
   };
 
   const handleReset = () => {
@@ -192,8 +192,6 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       <View style={styles.imageContainer}>
         <ImageViewer
           imageUri={imageData.uri}
-          imageWidth={imageData.width}
-          imageHeight={imageData.height}
           measurementPoints={measurementPoints}
           onAddPoint={handleAddPoint}
           isPointAddingMode={currentStep !== 'complete'}

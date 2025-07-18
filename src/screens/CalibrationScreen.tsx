@@ -14,7 +14,7 @@ import { calculatePixelsPerMM, validateCalibrationPoints } from '../utils/measur
 
 interface CalibrationScreenProps {
   imageData: ImageData;
-  onCalibrationComplete: (calibrationData: CalibrationData) => void;
+  onCalibrationComplete: (calibrationData: CalibrationData, points: MeasurementPoint[]) => void;
   onBack: () => void;
 }
 
@@ -89,7 +89,7 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       pixelsPerMM,
     };
 
-    onCalibrationComplete(calibrationData);
+    onCalibrationComplete(calibrationData, measurementPoints);
   };
 
   const handleReset = () => {

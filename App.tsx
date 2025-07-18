@@ -7,12 +7,13 @@ import CalibrationScreen from './src/screens/CalibrationScreen';
 import MeasurementScreen from './src/screens/MeasurementScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
 
-import { AppStep, ImageData, CalibrationData, MeasurementResults } from './src/types';
+import { AppStep, ImageData, CalibrationData, MeasurementResults, MeasurementPoint } from './src/types';
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState<AppStep>(AppStep.CAPTURE);
   const [imageData, setImageData] = useState<ImageData | null>(null);
   const [calibrationData, setCalibrationData] = useState<CalibrationData | null>(null);
+  const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
   const [results, setResults] = useState<MeasurementResults | null>(null);
 
   const handleImageCaptured = (data: ImageData) => {
@@ -20,17 +21,17 @@ export default function App() {
     setCurrentStep(AppStep.CALIBRATION);
   };
 
-  const handleCalibrationComplete = (data: CalibrationData) => {
-    setCalibrationData(data);
+  const handleCalibrationComplete = (calibration: CalibrationData, points: MeasurementPoint[]) => {
+    setCalibrationData(calibration);
+    setMeasurementPoints(points);
     setCurrentStep(AppStep.MEASUREMENT);
   };
 
-  const handleMeasurementComplete = (data: MeasurementResults) => {
-    setResults(data);
+  const handleMeasurementComplete = (measurementResults: MeasurementResults, points: MeasurementPoint[]) => {
+    setResults(measurementResults);
+    setMeasurementPoints(points);
     setCurrentStep(AppStep.RESULTS);
-  };
-
-  const handleStartNew = () => {
+  };  const handleStartNew = () => {
     setImageData(null);
     setCalibrationData(null);
     setResults(null);
@@ -95,6 +96,9 @@ export default function App() {
         return (
           <ResultsScreen
             results={results}
+            imageData={imageData!}
+            calibrationData={calibrationData!}
+            measurementPoints={measurementPoints}
             onStartNew={handleStartNew}
             onBack={handleBackToMeasurement}
           />
