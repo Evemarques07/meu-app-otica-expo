@@ -23,7 +23,7 @@
       "package": "com.fmjoias.meuappoticaexpo",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logoappotica.png",
         "backgroundColor": "#df181f"
       },
       "edgeToEdgeEnabled": true,
@@ -50,6 +50,12 @@
       "eas": {
         "projectId": "f20af4ee-cdc2-4921-8439-45f232bcd3ab"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f20af4ee-cdc2-4921-8439-45f232bcd3ab"
     }
   }
 }

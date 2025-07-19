@@ -9,9 +9,12 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "env": {
+          "EAS_BUILD_POST_INSTALL": "npm install --legacy-peer-deps && npx patch-package"
+        },
+        "channel": "preview"
       }
     },
     "production": {

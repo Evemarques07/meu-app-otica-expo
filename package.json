@@ -22,7 +22,8 @@
     "react-native-print": "^0.11.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-svg": "15.11.2",
-    "react-native-view-shot": "^4.0.3"
+    "react-native-view-shot": "^4.0.3",
+    "expo-updates": "~0.28.17"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -32,7 +33,9 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
-        "exclude": ["react-native-print"]
+        "exclude": [
+          "react-native-print"
+        ]
       }
     }
   },
