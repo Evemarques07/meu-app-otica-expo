@@ -4,11 +4,11 @@
     "slug": "meu-app-otica-expo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logoappotica.jpg",
+    "icon": "./assets/logoappotica.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
-      "image": "./assets/logoappotica.jpg",
+      "image": "./assets/logoappotica.png",
       "resizeMode": "contain",
       "backgroundColor": "#df181f"
     },
@@ -23,7 +23,7 @@
       "package": "com.fmjoias.meuappoticaexpo",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logoappotica.jpg",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#df181f"
       },
       "edgeToEdgeEnabled": true,
