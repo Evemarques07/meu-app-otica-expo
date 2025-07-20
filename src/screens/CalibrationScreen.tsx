@@ -14,7 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import ImageViewer from '../components/ImageViewer';
 import { ImageData, MeasurementPoint, MeasurementType, Point, CalibrationData } from '../types';
 import { calculatePixelsPerMM, validateCalibrationPoints } from '../utils/measurements';
-import { colors } from '../styles/colors';
+import { useThemedColors } from '../hooks/useThemedColors';
 import { spacing, borderRadius, typography, shadows, containers } from '../styles/layout';
 
 interface CalibrationScreenProps {
@@ -28,6 +28,7 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   onCalibrationComplete,
   onBack,
 }) => {
+  const colors = useThemedColors();
   const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
   const [currentStep, setCurrentStep] = useState<'left' | 'right'>('left');
   const [lastTapFeedback, setLastTapFeedback] = useState<string>('');
@@ -127,9 +128,169 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
     return 'Marque o ponto mais à direita da borda do cartão de crédito/débito.';
   };
 
+  // Estilos dinâmicos baseados no tema
+  const styles = StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    backButton: {
+      padding: spacing.sm,
+    },
+    backButtonText: {
+      ...typography.body,
+      color: colors.primary,
+    },
+    title: {
+      ...typography.title,
+      color: colors.text,
+    },
+    headerTitle: {
+      ...typography.title,
+      color: colors.text,
+    },
+    placeholder: {
+      width: 40,
+    },
+    instructionContainer: {
+      backgroundColor: colors.surface,
+      marginHorizontal: spacing.lg,
+      marginTop: spacing.lg,
+      padding: spacing.lg,
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...shadows.small,
+    },
+    stepInfo: {
+      ...typography.subtitle,
+      color: colors.primary,
+      marginBottom: spacing.sm,
+    },
+    instruction: {
+      ...typography.body,
+      marginBottom: spacing.sm,
+      color: colors.text,
+    },
+    subInstruction: {
+      ...typography.bodySecondary,
+      color: colors.textMuted,
+      marginBottom: spacing.sm,
+    },
+    feedbackText: {
+      ...typography.bodySecondary,
+      color: colors.success,
+      fontWeight: 'bold',
+    },
+    statusCard: {
+      backgroundColor: colors.surface,
+      marginHorizontal: spacing.lg,
+      marginTop: spacing.lg,
+      padding: spacing.lg,
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...shadows.small,
+    },
+    statusTitle: {
+      ...typography.subtitle,
+      color: colors.primary,
+      marginBottom: spacing.sm,
+    },
+    statusText: {
+      ...typography.body,
+      marginBottom: spacing.sm,
+      color: colors.text,
+    },
+    validationText: {
+      ...typography.bodySecondary,
+      color: colors.success,
+      fontWeight: 'bold',
+    },
+    imageContainer: {
+      flex: 1,
+      marginHorizontal: spacing.lg,
+      marginVertical: spacing.lg,
+      borderRadius: borderRadius.md,
+      overflow: 'hidden',
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...shadows.medium,
+    },
+    controlsContainer: {
+      backgroundColor: colors.surface,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.lg,
+      borderTopWidth: 1,
+      borderColor: colors.border,
+    },
+    pointsInfo: {
+      marginBottom: spacing.lg,
+    },
+    pointsText: {
+      ...typography.body,
+      marginBottom: spacing.sm,
+      color: colors.text,
+    },
+    pointItem: {
+      ...typography.bodySecondary,
+      color: colors.textMuted,
+      marginBottom: spacing.xs,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      gap: spacing.md,
+    },
+    resetButton: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      paddingVertical: spacing.md,
+      borderRadius: borderRadius.md,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...shadows.small,
+    },
+    resetButtonText: {
+      ...typography.button,
+      color: colors.text,
+    },
+    controlsText: {
+      ...typography.body,
+      textAlign: 'center',
+      marginBottom: spacing.lg,
+      color: colors.text,
+    },
+    continueButton: {
+      flex: 1,
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.md,
+      borderRadius: borderRadius.md,
+      alignItems: 'center',
+      ...shadows.small,
+    },
+    continueButtonText: {
+      ...typography.button,
+      color: colors.text,
+    },
+    disabledButton: {
+      backgroundColor: colors.border,
+      borderColor: colors.border,
+    },
+    disabledButtonText: {
+      color: colors.textMuted,
+    },
+  });
+
   return (
     <LinearGradient
-      colors={[colors.backgroundStart, colors.backgroundEnd]}
+      colors={[colors.background, colors.surface]}
       style={containers.screen}
     >
       <StatusBar barStyle="light-content" />
@@ -217,122 +378,5 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
     </LinearGradient>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.sm,
-    gap: spacing.sm,
-  },
-  backButtonText: {
-    ...typography.button,
-    color: colors.primary,
-  },
-  title: {
-    ...typography.h2,
-  },
-  placeholder: {
-    width: 60,
-  },
-  instructionContainer: {
-    backgroundColor: colors.surface,
-    marginHorizontal: spacing.lg,
-    marginVertical: spacing.md,
-    padding: spacing.lg,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.small,
-  },
-  stepInfo: {
-    ...typography.label,
-    color: colors.primary,
-    marginBottom: spacing.sm,
-  },
-  instruction: {
-    ...typography.h3,
-    marginBottom: spacing.sm,
-  },
-  subInstruction: {
-    ...typography.bodySecondary,
-    marginBottom: spacing.xs,
-  },
-  feedbackText: {
-    ...typography.bodySecondary,
-    color: colors.success,
-    marginTop: spacing.sm,
-    fontStyle: 'italic',
-  },
-  imageContainer: {
-    flex: 1,
-    marginHorizontal: spacing.lg,
-  },
-  controlsContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-  },
-  pointsInfo: {
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  pointsText: {
-    ...typography.label,
-    marginBottom: spacing.sm,
-  },
-  pointItem: {
-    ...typography.bodySecondary,
-    marginVertical: spacing.xs / 2,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  resetButton: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  resetButtonText: {
-    ...typography.button,
-    color: colors.text,
-  },
-  continueButton: {
-    flex: 1,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    ...shadows.small,
-  },
-  continueButtonText: {
-    ...typography.button,
-    color: colors.white,
-  },
-  disabledButton: {
-    backgroundColor: colors.gray700,
-    borderColor: colors.gray600,
-  },
-  disabledButtonText: {
-    color: colors.gray500,
-  },
-});
 
 export default CalibrationScreen;

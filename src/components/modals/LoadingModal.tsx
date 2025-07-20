@@ -8,7 +8,7 @@ import {
   Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../../styles/colors';
+import { useThemedColors } from '../../hooks/useThemedColors';
 import { spacing, borderRadius, typography, shadows } from '../../styles/layout';
 
 interface LoadingModalProps {
@@ -24,6 +24,68 @@ const LoadingModal: React.FC<LoadingModalProps> = ({
   message = 'Aguarde um momento...',
   progress,
 }) => {
+  const colors = useThemedColors();
+
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    container: {
+      width: '80%',
+      maxWidth: 320,
+    },
+    modal: {
+      borderRadius: borderRadius.xl,
+      overflow: 'hidden',
+      ...shadows.large,
+    },
+    modalBackground: {
+      padding: spacing.xl,
+      alignItems: 'center',
+    },
+    loadingContainer: {
+      marginBottom: spacing.lg,
+      alignItems: 'center',
+    },
+    progressContainer: {
+      marginTop: spacing.md,
+      width: '100%',
+      alignItems: 'center',
+    },
+    progressBackground: {
+      width: '100%',
+      height: 4,
+      backgroundColor: colors.border,
+      borderRadius: 2,
+      overflow: 'hidden',
+      marginBottom: spacing.sm,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.primary,
+      borderRadius: 2,
+    },
+    progressText: {
+      color: colors.textSecondary,
+    },
+    content: {
+      alignItems: 'center',
+    },
+    title: {
+      textAlign: 'center',
+      marginBottom: spacing.sm,
+      color: colors.text,
+    },
+    message: {
+      textAlign: 'center',
+      lineHeight: 20,
+      color: colors.textSecondary,
+    },
+  });
+
   return (
     <Modal
       transparent
@@ -34,7 +96,7 @@ const LoadingModal: React.FC<LoadingModalProps> = ({
         <View style={styles.container}>
           <View style={styles.modal}>
             <LinearGradient
-              colors={[colors.backgroundStart, colors.backgroundEnd]}
+              colors={[colors.background, colors.surface]}
               style={styles.modalBackground}
             >
               {/* Indicador de loading */}
@@ -71,63 +133,4 @@ const LoadingModal: React.FC<LoadingModalProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    width: '80%',
-    maxWidth: 320,
-  },
-  modal: {
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
-    ...shadows.large,
-  },
-  modalBackground: {
-    padding: spacing.xl,
-    alignItems: 'center',
-  },
-  loadingContainer: {
-    marginBottom: spacing.lg,
-    alignItems: 'center',
-  },
-  progressContainer: {
-    marginTop: spacing.md,
-    width: '100%',
-    alignItems: 'center',
-  },
-  progressBackground: {
-    width: '100%',
-    height: 4,
-    backgroundColor: colors.border,
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginBottom: spacing.sm,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 2,
-  },
-  progressText: {
-    color: colors.textSecondary,
-  },
-  content: {
-    alignItems: 'center',
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  message: {
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});
-
 export default LoadingModal;

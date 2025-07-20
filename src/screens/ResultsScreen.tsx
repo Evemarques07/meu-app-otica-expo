@@ -21,7 +21,8 @@ import {
   MeasurementPoint,
 } from "../types";
 import { shareResultsPDF, shareResultsText } from "../utils/sharing";
-import { colors } from '../styles/colors';
+import { useThemedColors } from "../hooks/useThemedColors";
+import { ThemeSwitch } from "../components/ThemeSwitch";
 import { spacing, typography } from '../styles/layout';
 
 interface ResultsScreenProps {
@@ -43,6 +44,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   onStartNew,
   onBack,
 }) => {
+  const colors = useThemedColors();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
@@ -111,9 +113,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <LinearGradient
-        colors={[colors.primary, colors.primaryMuted]}
+        colors={[colors.primary, colors.primaryDark]}
         style={styles.headerGradient}
       >
         {/* Header */}
@@ -121,8 +123,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Feather name="arrow-left" size={24} color={colors.white} />
           </TouchableOpacity>
-          <Text style={styles.title}>Resultados</Text>
+          <Text style={[styles.title, { color: colors.white }]}>Resultados</Text>
           <View style={styles.shareButtons}>
+            <ThemeSwitch size={20} />
             <TouchableOpacity
               style={styles.shareButton}
               onPress={handleShareText}
@@ -313,7 +316,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
+    backgroundColor: '#F2F2F7', // Será sobrescrito dinamicamente
   },
   headerGradient: {
     paddingBottom: spacing.md,
@@ -333,7 +336,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: colors.white,
+    color: '#FFFFFF', // Será sobrescrito dinamicamente
   },
   shareButtons: {
     flexDirection: "row",

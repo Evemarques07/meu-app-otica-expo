@@ -23,7 +23,7 @@ import {
   calculateMeasurements,
   validateMeasurementPoints,
 } from "../utils/measurements";
-import { colors } from '../styles/colors';
+import { useThemedColors } from '../hooks/useThemedColors';
 import { spacing, typography } from '../styles/layout';
 
 interface MeasurementScreenProps {
@@ -51,6 +51,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   onMeasurementComplete,
   onBack,
 }) => {
+  const colors = useThemedColors();
   const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
   const [currentStep, setCurrentStep] = useState<MeasurementStep>("leftPupil");
   const [isCompleting, setIsCompleting] = useState(false);
@@ -201,8 +202,229 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
     if (pointType === currentStepType) return colors.error;
     if (hasPoint) return colors.success;
-    return colors.gray400;
+    return colors.textMuted;
   };
+
+  // Estilos dinâmicos baseados no tema
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    gradient: {
+      paddingBottom: spacing.md,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    title: {
+      ...typography.title,
+      color: colors.text,
+      textAlign: 'center',
+      flex: 1,
+    },
+    resetButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    progressIndicator: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+    },
+    stepInfo: {
+      ...typography.caption,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: spacing.xs,
+    },
+    progressBar: {
+      height: 4,
+      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+      borderRadius: 2,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.text,
+      borderRadius: 2,
+    },
+    instructionContainer: {
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      marginHorizontal: spacing.md,
+      marginBottom: spacing.sm,
+      borderRadius: 12,
+    },
+    instruction: {
+      ...typography.subtitle,
+      marginBottom: spacing.xs,
+      color: colors.text,
+    },
+    subInstruction: {
+      ...typography.body,
+      color: colors.textMuted,
+    },
+    bottomContainer: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingTop: spacing.md,
+    },
+    progressContainer: {
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.md,
+    },
+    pointsTitle: {
+      ...typography.subtitle,
+      marginBottom: spacing.sm,
+      textAlign: 'center',
+      color: colors.text,
+    },
+    progressGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: spacing.xs,
+    },
+    progressIcon: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: spacing.xs / 2,
+    },
+    progressLabel: {
+      ...typography.caption,
+      textAlign: 'center',
+      color: colors.textMuted,
+      fontSize: 10,
+    },
+    buttonsContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.md,
+      gap: spacing.sm,
+    },
+    previousButton: {
+      flex: 1,
+      backgroundColor: colors.border,
+      paddingVertical: spacing.sm,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    previousButtonText: {
+      ...typography.button,
+      color: colors.textMuted,
+    },
+    calculateButton: {
+      flex: 2,
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.sm,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    calculateButtonText: {
+      ...typography.button,
+      color: colors.text,
+    },
+    headerButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    headerTitle: {
+      ...typography.title,
+      color: colors.text,
+      textAlign: 'center',
+    },
+    content: {
+      flex: 1,
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      marginTop: -24,
+      paddingTop: spacing.lg,
+    },
+    instructionCard: {
+      backgroundColor: colors.surface,
+      marginHorizontal: spacing.lg,
+      padding: spacing.lg,
+      borderRadius: 16,
+      ...typography.body,
+    },
+    stepProgress: {
+      ...typography.label,
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    stepTitle: {
+      ...typography.subtitle,
+      color: colors.textMuted,
+      marginBottom: spacing.xs,
+    },
+    imageContainer: {
+      flex: 1,
+      marginHorizontal: spacing.lg,
+      marginVertical: spacing.lg,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: colors.surface,
+    },
+    bottomPanel: {
+      backgroundColor: colors.surface,
+      paddingTop: spacing.lg,
+    },
+    progressSection: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.lg,
+      backgroundColor: colors.surface,
+    },
+    progressItem: {
+      alignItems: 'center',
+    },
+    completeButton: {
+      backgroundColor: colors.primary,
+      marginHorizontal: spacing.lg,
+      marginBottom: spacing.lg,
+      paddingVertical: spacing.md,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    completeButtonText: {
+      ...typography.button,
+      color: colors.text,
+    },
+    disabledButton: {
+      backgroundColor: colors.border,
+    },
+    disabledButtonText: {
+      color: colors.textMuted,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -333,170 +555,5 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.gray100,
-  },
-  gradient: {
-    paddingBottom: spacing.md,
-  },
-  safeArea: {
-    flex: 0,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  backButton: {
-    padding: spacing.xs,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  title: {
-    ...typography.h2,
-    color: colors.white,
-    textAlign: 'center',
-  },
-  resetButton: {
-    padding: spacing.xs,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  progressIndicator: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-  },
-  stepInfo: {
-    ...typography.body,
-    color: colors.white,
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.white,
-    borderRadius: 2,
-  },
-  instructionContainer: {
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
-    borderRadius: 12,
-    shadowColor: colors.gray900,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  instruction: {
-    ...typography.h3,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  subInstruction: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  imageContainer: {
-    flex: 1,
-    marginHorizontal: spacing.sm,
-    marginBottom: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    overflow: "hidden",
-    shadowColor: colors.gray900,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  bottomContainer: {
-    backgroundColor: colors.surface,
-    paddingTop: spacing.md,
-  },
-  progressContainer: {
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.md,
-  },
-  pointsTitle: {
-    ...typography.h3,
-    color: colors.text,
-    marginBottom: spacing.sm,
-    textAlign: 'center',
-  },
-  progressGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  progressItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "48%",
-    marginBottom: spacing.xs,
-  },
-  progressIcon: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: spacing.xs,
-  },
-  progressLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    flex: 1,
-  },
-  buttonsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.sm,
-  },
-  previousButton: {
-    flex: 1,
-    backgroundColor: colors.gray200,
-    paddingVertical: spacing.md,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  previousButtonText: {
-    ...typography.button,
-    color: colors.textSecondary,
-  },
-  calculateButton: {
-    flex: 2,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  calculateButtonText: {
-    ...typography.button,
-    color: colors.white,
-  },
-  disabledButton: {
-    backgroundColor: colors.gray300,
-  },
-  disabledButtonText: {
-    color: colors.gray500,
-  },
-});
 
 export default MeasurementScreen;

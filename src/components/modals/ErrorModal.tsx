@@ -40,7 +40,7 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
         <View style={styles.container}>
           <Pressable style={styles.modal} onPress={(e) => e.stopPropagation()}>
             <LinearGradient
-              colors={[colors.backgroundStart, colors.backgroundEnd]}
+              colors={[colors.background, colors.surface]}
               style={styles.modalBackground}
             >
               {/* Ícone de erro */}

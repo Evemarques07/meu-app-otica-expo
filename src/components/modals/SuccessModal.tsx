@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, gradients } from '../../styles/colors';
+import { useThemedColors } from '../../hooks/useThemedColors';
 import { spacing, borderRadius, typography, shadows } from '../../styles/layout';
 
 interface SuccessModalProps {
@@ -30,6 +30,8 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
   onClose,
   onAction,
 }) => {
+  const colors = useThemedColors();
+
   const handleAction = () => {
     if (onAction) {
       onAction();
@@ -37,6 +39,69 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
       onClose();
     }
   };
+
+  // Estilos dinâmicos baseados no tema
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    container: {
+      width: '90%',
+      maxWidth: 400,
+    },
+    modal: {
+      borderRadius: borderRadius.xl,
+      overflow: 'hidden',
+      ...shadows.large,
+    },
+    modalBackground: {
+      padding: spacing.xl,
+      alignItems: 'center',
+    },
+    iconContainer: {
+      marginBottom: spacing.lg,
+    },
+    iconBackground: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+      ...shadows.medium,
+    },
+    content: {
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+    },
+    title: {
+      textAlign: 'center',
+      marginBottom: spacing.md,
+      color: colors.text,
+    },
+    message: {
+      textAlign: 'center',
+      lineHeight: 24,
+      color: colors.textMuted,
+    },
+    buttonContainer: {
+      width: '100%',
+    },
+    button: {
+      borderRadius: borderRadius.md,
+      overflow: 'hidden',
+    },
+    buttonGradient: {
+      paddingVertical: spacing.md + 2,
+      paddingHorizontal: spacing.xl,
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: colors.text,
+    },
+  });
 
   return (
     <Modal
@@ -49,7 +114,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
         <View style={styles.container}>
           <Pressable style={styles.modal} onPress={(e) => e.stopPropagation()}>
             <LinearGradient
-              colors={gradients.background}
+              colors={[colors.background, colors.surface]}
               style={styles.modalBackground}
             >
               {/* Ícone de sucesso */}
@@ -94,65 +159,5 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    width: '90%',
-    maxWidth: 400,
-  },
-  modal: {
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
-    ...shadows.large,
-  },
-  modalBackground: {
-    padding: spacing.xl,
-    alignItems: 'center',
-  },
-  iconContainer: {
-    marginBottom: spacing.lg,
-  },
-  iconBackground: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.medium,
-  },
-  content: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  message: {
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  buttonContainer: {
-    width: '100%',
-  },
-  button: {
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
-  },
-  buttonGradient: {
-    paddingVertical: spacing.md + 2,
-    paddingHorizontal: spacing.xl,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: colors.white,
-  },
-});
 
 export default SuccessModal;

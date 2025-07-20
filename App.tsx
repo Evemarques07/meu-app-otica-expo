@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { ThemeProvider } from './src/contexts/ThemeContext';
 import CaptureScreen from './src/screens/CaptureScreen';
 import CalibrationScreen from './src/screens/CalibrationScreen';
 import MeasurementScreen from './src/screens/MeasurementScreen';
@@ -118,9 +119,11 @@ export default function App() {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="dark" />
-      {renderCurrentScreen()}
-    </GestureHandlerRootView>
+    <ThemeProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar style="auto" />
+        {renderCurrentScreen()}
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }
