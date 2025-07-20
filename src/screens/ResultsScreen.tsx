@@ -25,6 +25,7 @@ interface ResultsScreenProps {
   imageData?: ImageData;
   calibrationData?: CalibrationData;
   measurementPoints?: MeasurementPoint[];
+  capturedImageUri?: string | null;
   onStartNew: () => void;
   onBack: () => void;
 }
@@ -34,6 +35,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   imageData,
   calibrationData,
   measurementPoints,
+  capturedImageUri,
   onStartNew,
   onBack,
 }) => {
@@ -64,7 +66,8 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           imageData,
           calibrationData,
           measurementPoints,
-          patientName.trim()
+          patientName.trim(),
+          capturedImageUri || undefined
         );
       } catch (error) {
         console.error("Erro ao compartilhar PDF:", error);

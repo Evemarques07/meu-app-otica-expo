@@ -15,6 +15,7 @@ export default function App() {
   const [calibrationData, setCalibrationData] = useState<CalibrationData | null>(null);
   const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
   const [results, setResults] = useState<MeasurementResults | null>(null);
+  const [capturedImageUri, setCapturedImageUri] = useState<string | null>(null);
 
   const handleImageCaptured = (data: ImageData) => {
     setImageData(data);
@@ -27,14 +28,20 @@ export default function App() {
     setCurrentStep(AppStep.MEASUREMENT);
   };
 
-  const handleMeasurementComplete = (measurementResults: MeasurementResults, points: MeasurementPoint[]) => {
+  const handleMeasurementComplete = (
+    measurementResults: MeasurementResults, 
+    points: MeasurementPoint[], 
+    capturedUri?: string
+  ) => {
     setResults(measurementResults);
     setMeasurementPoints(points);
+    setCapturedImageUri(capturedUri || null);
     setCurrentStep(AppStep.RESULTS);
   };  const handleStartNew = () => {
     setImageData(null);
     setCalibrationData(null);
     setResults(null);
+    setCapturedImageUri(null);
     setCurrentStep(AppStep.CAPTURE);
   };
 
@@ -99,6 +106,7 @@ export default function App() {
             imageData={imageData!}
             calibrationData={calibrationData!}
             measurementPoints={measurementPoints}
+            capturedImageUri={capturedImageUri}
             onStartNew={handleStartNew}
             onBack={handleBackToMeasurement}
           />

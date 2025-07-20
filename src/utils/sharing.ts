@@ -17,7 +17,8 @@ export const generateReportHTML = (
   imageData?: ImageData,
   calibrationData?: CalibrationData,
   measurementPoints?: MeasurementPoint[],
-  patientName?: string
+  patientName?: string,
+  capturedImageUri?: string
 ): string => {
   const currentDate = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -152,6 +153,17 @@ export const generateReportHTML = (
           border-top: 1px solid #e0e0e0;
           padding-top: 6px;
         }
+        .image-section {
+          text-align: center;
+          margin: 10px 0;
+        }
+        .captured-image {
+          max-width: 100%;
+          max-height: 300px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
       </style>
     </head>
     <body>
@@ -224,6 +236,22 @@ export const generateReportHTML = (
           : ""
       }
 
+      ${
+        capturedImageUri
+          ? `
+      <div class="section">
+        <h2 class="section-title">📸 Imagem com Marcadores</h2>
+        <div class="image-section">
+          <img src="data:image/png;base64,${capturedImageUri}" class="captured-image" alt="Imagem com marcadores de medição" />
+          <p style="font-size: 9px; color: #666; margin-top: 5px;">
+            Imagem mostrando os pontos de medição marcados durante a análise
+          </p>
+        </div>
+      </div>
+      `
+          : ""
+      }
+
       <div class="section info-section">
         <h2 class="section-title">ℹ️ Informações Importantes</h2>
         <div class="info-list">
@@ -252,15 +280,29 @@ export const shareResultsPDF = async (
   imageData?: ImageData,
   calibrationData?: CalibrationData,
   measurementPoints?: MeasurementPoint[],
-  patientName?: string
+  patientName?: string,
+  capturedImageUri?: string
 ): Promise<void> => {
   try {
+    // Converter a imagem para base64 se fornecida
+    let imageBase64 = "";
+    if (capturedImageUri) {
+      try {
+        imageBase64 = await FileSystem.readAsStringAsync(capturedImageUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      } catch (error) {
+        console.warn("Erro ao converter imagem para base64:", error);
+      }
+    }
+
     const html = generateReportHTML(
       results,
       imageData,
       calibrationData,
       measurementPoints,
-      patientName
+      patientName,
+      imageBase64
     );
 
     const { uri } = await Print.printToFileAsync({

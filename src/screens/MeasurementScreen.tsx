@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,9 @@ import {
   SafeAreaView,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import ImageViewer from "../components/ImageViewer";
+import ImageViewer, { ImageViewerRef } from "../components/ImageViewer";
 import {
   ImageData,
   MeasurementPoint,
@@ -27,7 +28,8 @@ interface MeasurementScreenProps {
   calibrationData: CalibrationData;
   onMeasurementComplete: (
     results: MeasurementResults,
-    points: MeasurementPoint[]
+    points: MeasurementPoint[],
+    capturedImageUri?: string
   ) => void;
   onBack: () => void;
 }
@@ -50,6 +52,8 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     MeasurementPoint[]
   >([]);
   const [currentStep, setCurrentStep] = useState<MeasurementStep>("leftPupil");
+  const [isCompleting, setIsCompleting] = useState(false);
+  const imageViewerRef = useRef<ImageViewerRef>(null);
 
   const stepInfo = {
     leftPupil: {
@@ -127,7 +131,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     }
   };
 
-  const handleCalculateMeasurements = () => {
+  const handleCalculateMeasurements = async () => {
     if (!validateMeasurementPoints(measurementPoints)) {
       Alert.alert(
         "Medições Incompletas",
@@ -136,17 +140,35 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       return;
     }
 
-    const results = calculateMeasurements(measurementPoints, calibrationData);
+    setIsCompleting(true);
 
-    if (!results) {
-      Alert.alert(
-        "Erro no Cálculo",
-        "Não foi possível calcular as medições. Verifique se todos os pontos foram marcados corretamente."
-      );
-      return;
+    try {
+      const results = calculateMeasurements(measurementPoints, calibrationData);
+
+      if (!results) {
+        Alert.alert(
+          "Erro no Cálculo",
+          "Não foi possível calcular as medições. Verifique se todos os pontos foram marcados corretamente."
+        );
+        return;
+      }
+
+      // Capturar a imagem com os marcadores
+      let capturedImageUri: string | undefined;
+      try {
+        if (imageViewerRef.current) {
+          capturedImageUri = await imageViewerRef.current.captureImage();
+          console.log("Imagem capturada:", capturedImageUri);
+        }
+      } catch (error) {
+        console.warn("Erro ao capturar imagem:", error);
+        // Continuar mesmo se a captura falhar
+      }
+
+      onMeasurementComplete(results, measurementPoints, capturedImageUri);
+    } finally {
+      setIsCompleting(false);
     }
-
-    onMeasurementComplete(results, measurementPoints);
   };
 
   const handleReset = () => {
@@ -207,6 +229,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
       <View style={styles.imageContainer}>
         <ImageViewer
+          ref={imageViewerRef}
           imageUri={imageData.uri}
           measurementPoints={measurementPoints}
           onAddPoint={handleAddPoint}
@@ -273,21 +296,25 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
             <TouchableOpacity
               style={[
                 styles.calculateButton,
-                !validateMeasurementPoints(measurementPoints) &&
+                (!validateMeasurementPoints(measurementPoints) || isCompleting) &&
                   styles.disabledButton,
               ]}
               onPress={handleCalculateMeasurements}
-              disabled={!validateMeasurementPoints(measurementPoints)}
+              disabled={!validateMeasurementPoints(measurementPoints) || isCompleting}
             >
-              <Text
-                style={[
-                  styles.calculateButtonText,
-                  !validateMeasurementPoints(measurementPoints) &&
-                    styles.disabledButtonText,
-                ]}
-              >
-                Calcular Medições
-              </Text>
+              {isCompleting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text
+                  style={[
+                    styles.calculateButtonText,
+                    !validateMeasurementPoints(measurementPoints) &&
+                      styles.disabledButtonText,
+                  ]}
+                >
+                  Calcular Medições
+                </Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
