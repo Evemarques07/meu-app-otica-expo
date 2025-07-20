@@ -12,6 +12,8 @@ import {
   Modal,
   Image,
 } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import {
   MeasurementResults,
   ImageData,
@@ -19,6 +21,8 @@ import {
   MeasurementPoint,
 } from "../types";
 import { shareResultsPDF, shareResultsText } from "../utils/sharing";
+import { colors } from '../styles/colors';
+import { spacing, typography } from '../styles/layout';
 
 interface ResultsScreenProps {
   results: MeasurementResults;
@@ -108,45 +112,48 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Voltar</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Resultados</Text>
-        <View style={styles.shareButtons}>
-          <TouchableOpacity
-            style={[styles.shareButton, styles.textShareButton]}
-            onPress={handleShareText}
-            disabled={isGeneratingText}
-          >
-            {isGeneratingText ? (
-              <ActivityIndicator size="small" color="#007AFF" />
-            ) : (
-              <Text style={styles.shareButtonText}>📱 Texto</Text>
-            )}
+      <LinearGradient
+        colors={[colors.primary, colors.primaryMuted]}
+        style={styles.headerGradient}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Feather name="arrow-left" size={24} color={colors.white} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.shareButton, styles.pdfShareButton]}
-            onPress={handleSharePDF}
-            disabled={isGeneratingPDF}
-          >
-            {isGeneratingPDF ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.pdfShareButtonText}>📄 PDF</Text>
-            )}
-          </TouchableOpacity>
+          <Text style={styles.title}>Resultados</Text>
+          <View style={styles.shareButtons}>
+            <TouchableOpacity
+              style={styles.shareButton}
+              onPress={handleShareText}
+              disabled={isGeneratingText}
+            >
+              {isGeneratingText ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Feather name="message-circle" size={20} color={colors.white} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.shareButton}
+              onPress={handleSharePDF}
+              disabled={isGeneratingPDF}
+            >
+              {isGeneratingPDF ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Feather name="file-text" size={20} color={colors.white} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.successBanner}>
-          <Image
-            source={require("../../assets/logoappotica.jpg")}
-            style={styles.logoSmall}
-            resizeMode="contain"
-          />
-          <Text style={styles.successIcon}>✅</Text>
+          <View style={styles.successIconWrapper}>
+            <Feather name="check-circle" size={64} color={colors.success} />
+          </View>
           <Text style={styles.successTitle}>Medições Concluídas!</Text>
           <Text style={styles.successSubtitle}>
             Todas as medições foram calculadas com sucesso
@@ -306,44 +313,55 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.gray100,
+  },
+  headerGradient: {
+    paddingBottom: spacing.md,
   },
   header: {
-    marginTop: 20,
+    marginTop: spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   backButton: {
-    padding: 5,
-  },
-  backButtonText: {
-    color: "#007AFF",
-    fontSize: 16,
+    padding: spacing.xs,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   title: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  shareButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    minWidth: 70,
-    alignItems: "center",
-    justifyContent: "center",
+    ...typography.h2,
+    color: colors.white,
   },
   shareButtons: {
     flexDirection: "row",
-    gap: 8,
+    gap: spacing.xs,
   },
+  shareButton: {
+    padding: spacing.xs,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  successIconWrapper: {
+    marginBottom: spacing.md,
+    alignItems: 'center',
+  },
+  // shareButton: {
+  //   backgroundColor: "#007AFF",
+  //   paddingHorizontal: 12,
+  //   paddingVertical: 8,
+  //   borderRadius: 6,
+  //   minWidth: 70,
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
+  // shareButtons: {
+  //   flexDirection: "row",
+  //   gap: 8,
+  // },
+  
   textShareButton: {
     backgroundColor: "transparent",
     borderWidth: 1,
