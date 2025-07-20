@@ -36,9 +36,9 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
 }) => {
   const { width: screenWidth } = Dimensions.get("window");
 
-  // Assume um aspect ratio 4:3 para a imagem
-  const imageAspectRatio = 4 / 3;
-  const displayWidth = screenWidth * 0.98; // Aumentado de 0.95 para 0.98
+  // Assume um aspect ratio 4:5 para a imagem
+  const imageAspectRatio = 4 / 5;
+  const displayWidth = screenWidth * 1; // Aumentado de 0.95 para 0.98
   const displayHeight = displayWidth / imageAspectRatio;
 
   // Dimensões reais da imagem (será ajustado quando soubermos as dimensões reais)
