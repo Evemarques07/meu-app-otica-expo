@@ -1,5 +1,5 @@
 // calibração
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,26 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Alert,
-} from 'react-native';
-import ImageViewer from '../components/ImageViewer';
-import { ImageData, MeasurementPoint, MeasurementType, Point, CalibrationData } from '../types';
-import { calculatePixelsPerMM, validateCalibrationPoints } from '../utils/measurements';
+} from "react-native";
+import ImageViewer from "../components/ImageViewer";
+import {
+  ImageData,
+  MeasurementPoint,
+  MeasurementType,
+  Point,
+  CalibrationData,
+} from "../types";
+import {
+  calculatePixelsPerMM,
+  validateCalibrationPoints,
+} from "../utils/measurements";
 
 interface CalibrationScreenProps {
   imageData: ImageData;
-  onCalibrationComplete: (calibrationData: CalibrationData, points: MeasurementPoint[]) => void;
+  onCalibrationComplete: (
+    calibrationData: CalibrationData,
+    points: MeasurementPoint[]
+  ) => void;
   onBack: () => void;
 }
 
@@ -23,17 +35,23 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   onCalibrationComplete,
   onBack,
 }) => {
-  const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
-  const [currentStep, setCurrentStep] = useState<'left' | 'right'>('left');
-  const [lastTapFeedback, setLastTapFeedback] = useState<string>('');
+  const [measurementPoints, setMeasurementPoints] = useState<
+    MeasurementPoint[]
+  >([]);
+  const [currentStep, setCurrentStep] = useState<"left" | "right">("left");
+  const [lastTapFeedback, setLastTapFeedback] = useState<string>("");
 
   const handleAddPoint = (point: Point) => {
-    console.log('CalibrationScreen - Point received:', point);
-    console.log('CalibrationScreen - Current step:', currentStep);
-    
-    const pointType = currentStep === 'left' ? MeasurementType.CARD_LEFT : MeasurementType.CARD_RIGHT;
-    const label = currentStep === 'left' ? 'Extremidade Esquerda' : 'Extremidade Direita';
-    
+    console.log("CalibrationScreen - Point received:", point);
+    console.log("CalibrationScreen - Current step:", currentStep);
+
+    const pointType =
+      currentStep === "left"
+        ? MeasurementType.CARD_LEFT
+        : MeasurementType.CARD_RIGHT;
+    const label =
+      currentStep === "left" ? "Extremidade Esquerda" : "Extremidade Direita";
+
     const newPoint: MeasurementPoint = {
       id: `card_${currentStep}_${Date.now()}`,
       x: point.x,
@@ -42,47 +60,56 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       label,
     };
 
-    console.log('CalibrationScreen - New point created:', newPoint);
+    console.log("CalibrationScreen - New point created:", newPoint);
 
     // Remove ponto anterior do mesmo tipo se existir
-    const filteredPoints = measurementPoints.filter(p => p.type !== pointType);
+    const filteredPoints = measurementPoints.filter(
+      (p) => p.type !== pointType
+    );
     const updatedPoints = [...filteredPoints, newPoint];
-    
-    console.log('CalibrationScreen - Updated points:', updatedPoints);
+
+    console.log("CalibrationScreen - Updated points:", updatedPoints);
     setMeasurementPoints(updatedPoints);
 
     // Feedback visual temporário
     setLastTapFeedback(`✓ ${label} marcada`);
-    setTimeout(() => setLastTapFeedback(''), 2000);
+    setTimeout(() => setLastTapFeedback(""), 2000);
 
     // Avança para o próximo passo
-    if (currentStep === 'left') {
-      setCurrentStep('right');
-      console.log('CalibrationScreen - Moving to right step');
+    if (currentStep === "left") {
+      setCurrentStep("right");
+      console.log("CalibrationScreen - Moving to right step");
     } else {
-      console.log('CalibrationScreen - Both points marked');
+      console.log("CalibrationScreen - Both points marked");
     }
   };
 
   const handleContinue = () => {
     if (!validateCalibrationPoints(measurementPoints)) {
       Alert.alert(
-        'Pontos Incompletos',
-        'Por favor, marque as duas extremidades do cartão de crédito.'
+        "Pontos Incompletos",
+        "Por favor, marque as duas extremidades do cartão de crédito."
       );
       return;
     }
 
-    const leftPoint = measurementPoints.find(p => p.type === MeasurementType.CARD_LEFT);
-    const rightPoint = measurementPoints.find(p => p.type === MeasurementType.CARD_RIGHT);
+    const leftPoint = measurementPoints.find(
+      (p) => p.type === MeasurementType.CARD_LEFT
+    );
+    const rightPoint = measurementPoints.find(
+      (p) => p.type === MeasurementType.CARD_RIGHT
+    );
 
     if (!leftPoint || !rightPoint) {
-      Alert.alert('Erro', 'Não foi possível encontrar os pontos de calibração.');
+      Alert.alert(
+        "Erro",
+        "Não foi possível encontrar os pontos de calibração."
+      );
       return;
     }
 
     const pixelsPerMM = calculatePixelsPerMM(leftPoint, rightPoint);
-    
+
     const calibrationData: CalibrationData = {
       cardLeftPoint: leftPoint,
       cardRightPoint: rightPoint,
@@ -94,28 +121,32 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
 
   const handleReset = () => {
     setMeasurementPoints([]);
-    setCurrentStep('left');
+    setCurrentStep("left");
   };
 
   const getInstructionText = () => {
-    if (currentStep === 'left') {
-      return 'Toque na extremidade ESQUERDA do cartão';
+    if (currentStep === "left") {
+      return "Toque na extremidade ESQUERDA do cartão";
     }
-    return 'Toque na extremidade DIREITA do cartão';
+    return "Toque na extremidade DIREITA do cartão";
   };
 
   const getInstructionDetails = () => {
-    if (currentStep === 'left') {
-      return 'Será marcada com uma mira vermelha 🔴';
+    if (currentStep === "left") {
+      return "Será marcada com uma mira vermelha 🔴";
     }
-    return 'Será marcada com uma mira azul 🔵';
+    return "Será marcada com uma mira azul 🔵";
   };
 
   const getStepInfo = () => {
-    const leftMarked = measurementPoints.some(p => p.type === MeasurementType.CARD_LEFT);
-    const rightMarked = measurementPoints.some(p => p.type === MeasurementType.CARD_RIGHT);
-    
-    return `Passo ${leftMarked ? (rightMarked ? '2/2' : '2/2') : '1/2'}`;
+    const leftMarked = measurementPoints.some(
+      (p) => p.type === MeasurementType.CARD_LEFT
+    );
+    const rightMarked = measurementPoints.some(
+      (p) => p.type === MeasurementType.CARD_RIGHT
+    );
+
+    return `Passo ${leftMarked ? (rightMarked ? "2/2" : "2/2") : "1/2"}`;
   };
 
   return (
@@ -131,9 +162,7 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       <View style={styles.instructionContainer}>
         <Text style={styles.stepInfo}>{getStepInfo()}</Text>
         <Text style={styles.instruction}>{getInstructionText()}</Text>
-        <Text style={styles.subInstruction}>
-          {getInstructionDetails()}
-        </Text>
+        <Text style={styles.subInstruction}>{getInstructionDetails()}</Text>
         <Text style={styles.subInstruction}>
           Use zoom (até 6x) e pan para máxima precisão
         </Text>
@@ -158,7 +187,7 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
           </Text>
           {measurementPoints.map((point, index) => {
             const isLeft = point.type === MeasurementType.CARD_LEFT;
-            const emoji = isLeft ? '🔴' : '🔵';
+            const emoji = isLeft ? "🔴" : "🔵";
             return (
               <Text key={point.id} style={styles.pointItem}>
                 {emoji} {point.label}
@@ -168,31 +197,37 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.resetButton} 
+          <TouchableOpacity
+            style={styles.resetButton}
             onPress={handleReset}
             disabled={measurementPoints.length === 0}
           >
-            <Text style={[
-              styles.resetButtonText,
-              measurementPoints.length === 0 && styles.disabledButtonText
-            ]}>
+            <Text
+              style={[
+                styles.resetButtonText,
+                measurementPoints.length === 0 && styles.disabledButtonText,
+              ]}
+            >
               Recomeçar
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
               styles.continueButton,
-              !validateCalibrationPoints(measurementPoints) && styles.disabledButton
-            ]} 
+              !validateCalibrationPoints(measurementPoints) &&
+                styles.disabledButton,
+            ]}
             onPress={handleContinue}
             disabled={!validateCalibrationPoints(measurementPoints)}
           >
-            <Text style={[
-              styles.continueButtonText,
-              !validateCalibrationPoints(measurementPoints) && styles.disabledButtonText
-            ]}>
+            <Text
+              style={[
+                styles.continueButtonText,
+                !validateCalibrationPoints(measurementPoints) &&
+                  styles.disabledButtonText,
+              ]}
+            >
               Continuar
             </Text>
           </TouchableOpacity>
@@ -205,41 +240,41 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     marginBottom: 20, // Removed to avoid bottom margin
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   backButton: {
     padding: 5,
   },
   backButtonText: {
-    color: '#007AFF',
+    color: "#007AFF",
     fontSize: 16,
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   placeholder: {
     width: 60,
   },
   instructionContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 10, // Reduzido de 15 para 10
     marginHorizontal: 5, // Reduzido de 10 para 5
     marginBottom: 5, // Reduzido de 10 para 5
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -250,35 +285,35 @@ const styles = StyleSheet.create({
   },
   stepInfo: {
     fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
+    color: "#007AFF",
+    fontWeight: "600",
     marginBottom: 5,
   },
   instruction: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 5,
   },
   subInstruction: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   feedbackText: {
     fontSize: 14,
-    color: '#28a745',
-    fontWeight: '600',
+    color: "#28a745",
+    fontWeight: "600",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   imageContainer: {
     flex: 1,
     margin: 5, // Reduzido de 10 para 5
     marginBottom: 8, // Reduzido de 15 para 8
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -288,27 +323,27 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   controlsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 15, // Reduzido de 20 para 15
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
   },
   pointsInfo: {
     marginBottom: 15, // Reduzido de 20 para 15
   },
   pointsText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 10,
   },
   pointItem: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginLeft: 10,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 15,
   },
   resetButton: {
@@ -317,32 +352,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
+    borderColor: "#ccc",
+    alignItems: "center",
   },
   resetButtonText: {
-    color: '#666',
+    color: "#666",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   continueButton: {
     flex: 2,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   continueButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   disabledButtonText: {
-    color: '#999',
+    color: "#999",
   },
 });
 
