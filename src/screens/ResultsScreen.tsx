@@ -127,25 +127,31 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           <View style={styles.shareButtons}>
             <ThemeSwitch size={20} />
             <TouchableOpacity
-              style={styles.shareButton}
+              style={[styles.shareButton, styles.textShareButton]}
               onPress={handleShareText}
               disabled={isGeneratingText}
             >
               {isGeneratingText ? (
-                <ActivityIndicator size="small" color={colors.white} />
+                <ActivityIndicator size="small" color={colors.primary} />
               ) : (
-                <Feather name="message-circle" size={20} color={colors.white} />
+                <>
+                  <Feather name="message-circle" size={16} color={colors.primary} />
+                  <Text style={[styles.shareButtonText, { color: colors.primary }]}>Texto</Text>
+                </>
               )}
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.shareButton}
+              style={[styles.shareButton, styles.pdfShareButton]}
               onPress={handleSharePDF}
               disabled={isGeneratingPDF}
             >
               {isGeneratingPDF ? (
                 <ActivityIndicator size="small" color={colors.white} />
               ) : (
-                <Feather name="file-text" size={20} color={colors.white} />
+                <>
+                  <Feather name="file-text" size={16} color={colors.white} />
+                  <Text style={styles.pdfShareButtonText}>PDF</Text>
+                </>
               )}
             </TouchableOpacity>
           </View>
@@ -255,10 +261,11 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={styles.newMeasurementButton}
+          style={[styles.newMeasurementButton, { backgroundColor: colors.primary }]}
           onPress={onStartNew}
         >
-          <Text style={styles.newMeasurementButtonText}>📷 Nova Medição</Text>
+          <Feather name="camera" size={20} color={colors.white} />
+          <Text style={styles.newMeasurementButtonText}>Nova Medição</Text>
         </TouchableOpacity>
       </View>
 
@@ -340,12 +347,18 @@ const styles = StyleSheet.create({
   },
   shareButtons: {
     flexDirection: "row",
-    gap: spacing.xs,
+    gap: spacing.sm,
+    alignItems: "center",
   },
   shareButton: {
-    padding: spacing.xs,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+    gap: 4,
+    minWidth: 60,
+    justifyContent: "center",
   },
   successIconWrapper: {
     marginBottom: spacing.md,
@@ -366,15 +379,16 @@ const styles = StyleSheet.create({
   // },
   
   textShareButton: {
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderWidth: 1,
-    borderColor: "#007AFF",
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   pdfShareButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   shareButtonText: {
-    color: "#007AFF",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -438,6 +452,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     marginBottom: 12,
+    flex: 1,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -482,6 +497,7 @@ const styles = StyleSheet.create({
   dpnRow: {
     flexDirection: "row",
     gap: 10,
+    flex: 1,
   },
   heightContainer: {
     marginTop: 20,
@@ -489,6 +505,7 @@ const styles = StyleSheet.create({
   heightRow: {
     flexDirection: "row",
     gap: 10,
+    flex: 1,
   },
   infoContainer: {
     backgroundColor: "#FFF3E0",
@@ -531,17 +548,19 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   buttonContainer: {
-    padding: 20,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: "transparent",
   },
   newMeasurementButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
+    backgroundColor: "#007AFF",
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -553,7 +572,7 @@ const styles = StyleSheet.create({
   },
   newMeasurementButtonText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
   },
   // Estilos do modal
