@@ -1,25 +1,183 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   ScrollView,
   Image,
+  StatusBar,
+  Animated,
+  Pressable,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   ensureCameraPermission,
   ensureGalleryPermission,
 } from "../utils/permissions";
 import { ImageData } from "../types";
+import { useThemedColors } from '../hooks/useThemedColors';
+import { ThemeSwitch } from '../components/ThemeSwitch';
+import { spacing, borderRadius, typography, shadows, containers } from '../styles/layout';
 
 interface CaptureScreenProps {
   onImageCaptured: (imageData: ImageData) => void;
 }
 
 const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
+  const colors = useThemedColors();
+  
+  // Estilos dinâmicos baseados no tema
+  const styles = StyleSheet.create({
+    header: {
+      alignItems: "center",
+      marginBottom: spacing.xl,
+    },
+    topRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      width: '100%',
+      marginBottom: spacing.md,
+    },
+    logoContainer: {
+      alignItems: 'center',
+    },
+    logo: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+    title: {
+      ...typography.title,
+      marginBottom: spacing.md,
+      color: colors.text,
+    },
+    subtitle: {
+      ...typography.subtitle,
+      textAlign: "center",
+      color: colors.textMuted,
+    },
+    card: {
+      ...containers.card,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
+      marginBottom: spacing.xl,
+      backgroundColor: colors.surface,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginLeft: 58, // Alinhado com o texto
+    },
+    instruction: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: spacing.md,
+    },
+    instructionIconContainer: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.primaryMuted,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: spacing.md,
+    },
+    instructionTextContainer: {
+      flex: 1,
+    },
+    instructionTitle: {
+      ...typography.label,
+      fontSize: 16,
+      marginBottom: 4,
+      color: colors.text,
+    },
+    instructionText: {
+      ...typography.bodySecondary,
+      lineHeight: 22,
+      color: colors.textMuted,
+    },
+    buttonsContainer: {
+      gap: spacing.md,
+      marginBottom: spacing.xl,
+    },
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.lg + 2,
+      borderRadius: borderRadius.md,
+      gap: spacing.md,
+      ...shadows.medium,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    buttonPressed: {
+      transform: [{ scale: 0.98 }],
+      opacity: 0.9,
+    },
+    secondaryButton: {
+      backgroundColor: colors.surface,
+      borderColor: colors.primary,
+    },
+    buttonText: {
+      ...typography.button,
+      color: colors.text,
+    },
+    secondaryButtonText: {
+      color: colors.primary,
+    },
+    tipContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primaryMuted,
+      borderRadius: borderRadius.md,
+      padding: spacing.md,
+      gap: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.primary
+    },
+    tipText: {
+      ...typography.bodySecondary,
+      lineHeight: 21,
+      flex: 1,
+      color: colors.text,
+    },
+  });
+
+  // Componente reutilizável para cada linha de instrução
+  const InstructionItem = ({ icon, title, text }: { icon: any; title: string; text: string }) => (
+    <>
+      <View style={styles.instruction}>
+        <View style={styles.instructionIconContainer}>
+          <Feather name={icon} size={22} color={colors.primary} />
+        </View>
+        <View style={styles.instructionTextContainer}>
+          <Text style={styles.instructionTitle}>{title}</Text>
+          <Text style={styles.instructionText}>{text}</Text>
+        </View>
+      </View>
+      <View style={styles.divider} />
+    </>
+  );
+  
+  // Animação de fade-in para o conteúdo
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
   const handleTakePhoto = async () => {
     const hasPermission = await ensureCameraPermission();
     if (!hasPermission) return;
@@ -27,21 +185,12 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
     try {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: false,
-        aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.9,
       });
 
-      if (!result.canceled && result.assets && result.assets[0]) {
-        const asset = result.assets[0];
-        if (asset.uri && asset.width && asset.height) {
-          const imageData: ImageData = {
-            uri: asset.uri,
-            width: asset.width,
-            height: asset.height,
-          };
-          onImageCaptured(imageData);
-        }
+      if (!result.canceled && result.assets?.[0]) {
+        const { uri, width, height } = result.assets[0];
+        onImageCaptured({ uri, width, height });
       }
     } catch (error) {
       console.error("Erro ao capturar foto:", error);
@@ -56,21 +205,12 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: false,
-        aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.9,
       });
-
-      if (!result.canceled && result.assets && result.assets[0]) {
-        const asset = result.assets[0];
-        if (asset.uri && asset.width && asset.height) {
-          const imageData: ImageData = {
-            uri: asset.uri,
-            width: asset.width,
-            height: asset.height,
-          };
-          onImageCaptured(imageData);
-        }
+      
+      if (!result.canceled && result.assets?.[0]) {
+        const { uri, width, height } = result.assets[0];
+        onImageCaptured({ uri, width, height });
       }
     } catch (error) {
       console.error("Erro ao selecionar foto:", error);
@@ -79,189 +219,76 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Image
-          source={require("../../assets/logoappotica.jpg")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Medição de Óculos</Text>
-        <Text style={styles.subtitle}>
-          Para começar a medição, capture uma foto ou selecione da galeria
-        </Text>
-      </View>
+    <LinearGradient
+      colors={[colors.background, colors.surface]}
+      style={containers.screen}
+    >
+      <StatusBar barStyle="light-content" />
+      <ScrollView contentContainerStyle={containers.content}>
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <View style={styles.header}>
+            <View style={styles.topRow}>
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require("../../assets/logoappotica.jpg")}
+                  style={styles.logo}
+                />
+              </View>
+              <ThemeSwitch />
+            </View>
+            <Text style={styles.title}>Medição Inteligente</Text>
+            <Text style={styles.subtitle}>
+              Siga os passos abaixo para uma medição precisa da sua DNP.
+            </Text>
+          </View>
 
-      <View style={styles.instructionsContainer}>
-        <Text style={styles.instructionsTitle}>📋 Instruções Importantes:</Text>
+          <View style={styles.card}>
+            <InstructionItem 
+              icon="camera"
+              title="Posicionamento"
+              text="Fique de frente para a câmera e olhe diretamente para a lente."
+            />
+            <InstructionItem 
+              icon="credit-card"
+              title="Objeto de Referência"
+              text="Segure um cartão padrão (crédito/débito) contra a testa."
+            />
+            <InstructionItem 
+              icon="sun"
+              title="Iluminação Ideal"
+              text="Escolha um ambiente bem iluminado, evitando sombras no rosto."
+            />
+            <InstructionItem 
+              icon="zoom-in"
+              title="Enquadramento"
+              text="Garanta que seu rosto e o cartão estejam nítidos e visíveis."
+            />
+          </View>
+          
+          <View style={styles.buttonsContainer}>
+            <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={handleTakePhoto}>
+              <Feather name="camera" size={20} color={colors.text} />
+              <Text style={styles.buttonText}>Tirar Foto Agora</Text>
+            </Pressable>
 
-        <View style={styles.instruction}>
-          <Text style={styles.instructionNumber}>1.</Text>
-          <Text style={styles.instructionText}>
-            <Text style={styles.bold}>Posição da pessoa:</Text> De frente para a
-            câmera, olhando diretamente para a lente
-          </Text>
-        </View>
+            <Pressable style={({ pressed }) => [styles.button, styles.secondaryButton, pressed && styles.buttonPressed]} onPress={handleSelectFromGallery}>
+              <Feather name="image" size={20} color={colors.primary} />
+              <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+                Usar Foto da Galeria
+              </Text>
+            </Pressable>
+          </View>
 
-        <View style={styles.instruction}>
-          <Text style={styles.instructionNumber}>2.</Text>
-          <Text style={styles.instructionText}>
-            <Text style={styles.bold}>Cartão de referência:</Text> Posicione um
-            cartão de crédito próximo ao rosto da pessoa
-          </Text>
-        </View>
-
-        <View style={styles.instruction}>
-          <Text style={styles.instructionNumber}>3.</Text>
-          <Text style={styles.instructionText}>
-            <Text style={styles.bold}>Iluminação:</Text> Certifique-se de ter
-            boa iluminação e que a foto esteja nítida
-          </Text>
-        </View>
-
-        <View style={styles.instruction}>
-          <Text style={styles.instructionNumber}>4.</Text>
-          <Text style={styles.instructionText}>
-            <Text style={styles.bold}>Distância:</Text> Mantenha uma distância
-            adequada para que o rosto e o cartão sejam visíveis
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
-          <Text style={styles.buttonText}>📷 Tirar Foto</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
-          onPress={handleSelectFromGallery}
-        >
-          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
-            🖼️ Selecionar da Galeria
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.tipContainer}>
-        <Text style={styles.tipText}>
-          💡 <Text style={styles.bold}>Dica:</Text> Para melhores resultados,
-          use a câmera traseira e mantenha o dispositivo estável
-        </Text>
-      </View>
-    </ScrollView>
+          <View style={styles.tipContainer}>
+            <Feather name="info" size={20} color={colors.primary} />
+            <Text style={styles.tipText}>
+              <Text style={{fontWeight: 'bold'}}>Dica:</Text> Fotos com a câmera traseira geralmente possuem maior qualidade e precisão.
+            </Text>
+          </View>
+        </Animated.View>
+      </ScrollView>
+    </LinearGradient>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  content: {
-    padding: 20,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 15,
-    borderRadius: 50,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  instructionsContainer: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 30,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  instructionsTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 15,
-  },
-  instruction: {
-    flexDirection: "row",
-    marginBottom: 12,
-    alignItems: "flex-start",
-  },
-  instructionNumber: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#007AFF",
-    marginRight: 10,
-    minWidth: 20,
-  },
-  instructionText: {
-    fontSize: 16,
-    color: "#333",
-    flex: 1,
-    lineHeight: 22,
-  },
-  bold: {
-    fontWeight: "bold",
-  },
-  buttonsContainer: {
-    gap: 15,
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  secondaryButton: {
-    backgroundColor: "white",
-    borderWidth: 2,
-    borderColor: "#007AFF",
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-  },
-  secondaryButtonText: {
-    color: "#007AFF",
-  },
-  tipContainer: {
-    backgroundColor: "#E8F4FD",
-    borderRadius: 8,
-    padding: 15,
-    borderLeftWidth: 4,
-    borderLeftColor: "#007AFF",
-  },
-  tipText: {
-    fontSize: 14,
-    color: "#333",
-    lineHeight: 20,
-  },
-});
 
 export default CaptureScreen;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import {
   View,
   Image,
@@ -19,6 +19,7 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import Svg, { Circle, Line, G } from "react-native-svg";
+import { captureRef } from "react-native-view-shot";
 import { Point, MeasurementType } from "../types";
 
 interface ImageViewerProps {
@@ -28,17 +29,22 @@ interface ImageViewerProps {
   isPointAddingMode: boolean;
 }
 
-const ImageViewer: React.FC<ImageViewerProps> = ({
+export interface ImageViewerRef {
+  captureImage: () => Promise<string>;
+}
+
+const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(({
   imageUri,
   measurementPoints,
   onAddPoint,
   isPointAddingMode,
-}) => {
+}, ref) => {
   const { width: screenWidth } = Dimensions.get("window");
+  const viewRef = useRef<View>(null);
 
-  // Assume um aspect ratio 4:3 para a imagem
-  const imageAspectRatio = 4 / 3;
-  const displayWidth = screenWidth * 0.98; // Aumentado de 0.95 para 0.98
+  // Assume um aspect ratio 4:5 para a imagem
+  const imageAspectRatio = 4 / 4.4;
+  const displayWidth = screenWidth * 0.9; // Aumentado de 0.95 para 0.98
   const displayHeight = displayWidth / imageAspectRatio;
 
   // Dimensões reais da imagem (será ajustado quando soubermos as dimensões reais)
@@ -295,6 +301,25 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     );
   };
 
+  // Função para capturar a imagem como screenshot
+  useImperativeHandle(ref, () => ({
+    captureImage: async (): Promise<string> => {
+      try {
+        if (viewRef.current) {
+          const uri = await captureRef(viewRef.current, {
+            format: "png",
+            quality: 0.8,
+          });
+          return uri;
+        }
+        throw new Error("Referência da view não encontrada");
+      } catch (error) {
+        console.error("Erro ao capturar imagem:", error);
+        throw error;
+      }
+    },
+  }));
+
   // Função simplificada para tap usando TouchableWithoutFeedback
   const handleSimpleTap = (event: any) => {
     if (!isPointAddingMode) return;
@@ -326,7 +351,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
             <Animated.View style={styles.imageContainer}>
               <Animated.View style={animatedImageStyle}>
                 <TouchableWithoutFeedback onPress={handleSimpleTap}>
-                  <View>
+                  <View ref={viewRef}>
                     <Image
                       source={{ uri: imageUri }}
                       style={[
@@ -362,7 +387,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
       </PinchGestureHandler>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

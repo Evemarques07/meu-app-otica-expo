@@ -1,5 +1,5 @@
 // calibração
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,10 +19,7 @@ import { spacing, borderRadius, typography, shadows, containers } from '../style
 
 interface CalibrationScreenProps {
   imageData: ImageData;
-  onCalibrationComplete: (
-    calibrationData: CalibrationData,
-    points: MeasurementPoint[]
-  ) => void;
+  onCalibrationComplete: (calibrationData: CalibrationData, points: MeasurementPoint[]) => void;
   onBack: () => void;
 }
 
@@ -143,27 +140,26 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       borderBottomColor: colors.border,
     },
     backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
       padding: spacing.sm,
+      gap: spacing.sm,
     },
     backButtonText: {
-      ...typography.body,
+      ...typography.button,
       color: colors.primary,
     },
     title: {
       ...typography.title,
       color: colors.text,
     },
-    headerTitle: {
-      ...typography.title,
-      color: colors.text,
-    },
     placeholder: {
-      width: 40,
+      width: 60,
     },
     instructionContainer: {
       backgroundColor: colors.surface,
       marginHorizontal: spacing.lg,
-      marginTop: spacing.lg,
+      marginVertical: spacing.md,
       padding: spacing.lg,
       borderRadius: borderRadius.md,
       borderWidth: 1,
@@ -171,80 +167,51 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       ...shadows.small,
     },
     stepInfo: {
-      ...typography.subtitle,
+      ...typography.label,
       color: colors.primary,
       marginBottom: spacing.sm,
     },
     instruction: {
-      ...typography.body,
-      marginBottom: spacing.sm,
+      ...typography.subtitle,
       color: colors.text,
+      marginBottom: spacing.sm,
     },
     subInstruction: {
       ...typography.bodySecondary,
       color: colors.textMuted,
-      marginBottom: spacing.sm,
+      marginBottom: spacing.xs,
     },
     feedbackText: {
       ...typography.bodySecondary,
       color: colors.success,
-      fontWeight: 'bold',
-    },
-    statusCard: {
-      backgroundColor: colors.surface,
-      marginHorizontal: spacing.lg,
-      marginTop: spacing.lg,
-      padding: spacing.lg,
-      borderRadius: borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      ...shadows.small,
-    },
-    statusTitle: {
-      ...typography.subtitle,
-      color: colors.primary,
-      marginBottom: spacing.sm,
-    },
-    statusText: {
-      ...typography.body,
-      marginBottom: spacing.sm,
-      color: colors.text,
-    },
-    validationText: {
-      ...typography.bodySecondary,
-      color: colors.success,
-      fontWeight: 'bold',
+      marginTop: spacing.sm,
+      fontStyle: 'italic',
     },
     imageContainer: {
       flex: 1,
       marginHorizontal: spacing.lg,
-      marginVertical: spacing.lg,
-      borderRadius: borderRadius.md,
-      overflow: 'hidden',
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-      ...shadows.medium,
     },
     controlsContainer: {
-      backgroundColor: colors.surface,
       paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.lg,
-      borderTopWidth: 1,
-      borderColor: colors.border,
+      paddingBottom: spacing.lg,
     },
     pointsInfo: {
-      marginBottom: spacing.lg,
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      borderRadius: borderRadius.md,
+      marginBottom: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     pointsText: {
-      ...typography.body,
-      marginBottom: spacing.sm,
+      ...typography.label,
       color: colors.text,
+      marginBottom: spacing.sm,
     },
     pointItem: {
       ...typography.bodySecondary,
       color: colors.textMuted,
-      marginBottom: spacing.xs,
+      marginVertical: spacing.xs / 2,
     },
     buttonContainer: {
       flexDirection: 'row',
@@ -258,16 +225,9 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.border,
-      ...shadows.small,
     },
     resetButtonText: {
       ...typography.button,
-      color: colors.text,
-    },
-    controlsText: {
-      ...typography.body,
-      textAlign: 'center',
-      marginBottom: spacing.lg,
       color: colors.text,
     },
     continueButton: {

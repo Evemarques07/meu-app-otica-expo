@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Alert,
-  ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import ImageViewer from "../components/ImageViewer";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
+import ImageViewer, { ImageViewerRef } from "../components/ImageViewer";
 import {
   ImageData,
   MeasurementPoint,
@@ -21,13 +23,16 @@ import {
   calculateMeasurements,
   validateMeasurementPoints,
 } from "../utils/measurements";
+import { useThemedColors } from '../hooks/useThemedColors';
+import { spacing, typography } from '../styles/layout';
 
 interface MeasurementScreenProps {
   imageData: ImageData;
   calibrationData: CalibrationData;
   onMeasurementComplete: (
     results: MeasurementResults,
-    points: MeasurementPoint[]
+    points: MeasurementPoint[],
+    capturedImageUri?: string
   ) => void;
   onBack: () => void;
 }
@@ -46,10 +51,11 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   onMeasurementComplete,
   onBack,
 }) => {
-  const [measurementPoints, setMeasurementPoints] = useState<
-    MeasurementPoint[]
-  >([]);
+  const colors = useThemedColors();
+  const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
   const [currentStep, setCurrentStep] = useState<MeasurementStep>("leftPupil");
+  const [isCompleting, setIsCompleting] = useState(false);
+  const imageViewerRef = useRef<ImageViewerRef>(null);
 
   const stepInfo = {
     leftPupil: {
@@ -86,7 +92,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
   const stepOrder: MeasurementStep[] = [
     "leftPupil",
-    "rightPupil",
+    "rightPupil", 
     "bridgeCenter",
     "leftLensBottom",
     "rightLensBottom",
@@ -127,7 +133,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     }
   };
 
-  const handleCalculateMeasurements = () => {
+  const handleCalculateMeasurements = async () => {
     if (!validateMeasurementPoints(measurementPoints)) {
       Alert.alert(
         "Medições Incompletas",
@@ -136,17 +142,35 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       return;
     }
 
-    const results = calculateMeasurements(measurementPoints, calibrationData);
+    setIsCompleting(true);
 
-    if (!results) {
-      Alert.alert(
-        "Erro no Cálculo",
-        "Não foi possível calcular as medições. Verifique se todos os pontos foram marcados corretamente."
-      );
-      return;
+    try {
+      const results = calculateMeasurements(measurementPoints, calibrationData);
+
+      if (!results) {
+        Alert.alert(
+          "Erro no Cálculo",
+          "Não foi possível calcular as medições. Verifique se todos os pontos foram marcados corretamente."
+        );
+        return;
+      }
+
+      // Capturar a imagem com os marcadores
+      let capturedImageUri: string | undefined;
+      try {
+        if (imageViewerRef.current) {
+          capturedImageUri = await imageViewerRef.current.captureImage();
+          console.log("Imagem capturada:", capturedImageUri);
+        }
+      } catch (error) {
+        console.warn("Erro ao capturar imagem:", error);
+        // Continuar mesmo se a captura falhar
+      }
+
+      onMeasurementComplete(results, measurementPoints, capturedImageUri);
+    } finally {
+      setIsCompleting(false);
     }
-
-    onMeasurementComplete(results, measurementPoints);
   };
 
   const handleReset = () => {
@@ -176,27 +200,269 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     const hasPoint = measurementPoints.some((p) => p.type === pointType);
     const currentStepType = stepInfo[currentStep]?.type;
 
-    if (pointType === currentStepType) return "#FF6B6B"; // Vermelho para ponto atual
-    if (hasPoint) return "#4ECDC4"; // Verde para pontos já marcados
-    return "#DDD"; // Cinza para pontos não marcados
+    if (pointType === currentStepType) return colors.error;
+    if (hasPoint) return colors.success;
+    return colors.textMuted;
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Voltar</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Medições</Text>
-        <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-          <Text style={styles.resetButtonText}>Recomeçar</Text>
-        </TouchableOpacity>
-      </View>
+  // Estilos dinâmicos baseados no tema
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    gradient: {
+      paddingBottom: spacing.md,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    title: {
+      ...typography.title,
+      color: colors.text,
+      textAlign: 'center',
+      flex: 1,
+    },
+    resetButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    progressIndicator: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+    },
+    stepInfo: {
+      ...typography.caption,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: spacing.xs,
+    },
+    progressBar: {
+      height: 4,
+      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+      borderRadius: 2,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.text,
+      borderRadius: 2,
+    },
+    instructionContainer: {
+      backgroundColor: colors.surface,
+      padding: spacing.md,
+      marginHorizontal: spacing.md,
+      marginBottom: spacing.sm,
+      borderRadius: 12,
+    },
+    instruction: {
+      ...typography.subtitle,
+      marginBottom: spacing.xs,
+      color: colors.text,
+    },
+    subInstruction: {
+      ...typography.body,
+      color: colors.textMuted,
+    },
+    bottomContainer: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingTop: spacing.md,
+    },
+    progressContainer: {
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.md,
+    },
+    pointsTitle: {
+      ...typography.subtitle,
+      marginBottom: spacing.sm,
+      textAlign: 'center',
+      color: colors.text,
+    },
+    progressGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: spacing.xs,
+    },
+    progressIcon: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: spacing.xs / 2,
+    },
+    progressLabel: {
+      ...typography.caption,
+      textAlign: 'center',
+      color: colors.textMuted,
+      fontSize: 10,
+    },
+    buttonsContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.md,
+      gap: spacing.sm,
+    },
+    previousButton: {
+      flex: 1,
+      backgroundColor: colors.border,
+      paddingVertical: spacing.sm,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    previousButtonText: {
+      ...typography.button,
+      color: colors.textMuted,
+    },
+    calculateButton: {
+      flex: 2,
+      backgroundColor: colors.primary,
+      paddingVertical: spacing.sm,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    calculateButtonText: {
+      ...typography.button,
+      color: colors.text,
+    },
+    headerButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    headerTitle: {
+      ...typography.title,
+      color: colors.text,
+      textAlign: 'center',
+    },
+    content: {
+      flex: 1,
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      marginTop: -24,
+      paddingTop: spacing.lg,
+    },
+    instructionCard: {
+      backgroundColor: colors.surface,
+      marginHorizontal: spacing.lg,
+      padding: spacing.lg,
+      borderRadius: 16,
+      ...typography.body,
+    },
+    stepProgress: {
+      ...typography.label,
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    stepTitle: {
+      ...typography.subtitle,
+      color: colors.textMuted,
+      marginBottom: spacing.xs,
+    },
+    imageContainer: {
+      flex: 1,
+      marginHorizontal: spacing.lg,
+      marginVertical: spacing.lg,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: colors.surface,
+    },
+    bottomPanel: {
+      backgroundColor: colors.surface,
+      paddingTop: spacing.lg,
+    },
+    progressSection: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.lg,
+      backgroundColor: colors.surface,
+    },
+    progressItem: {
+      alignItems: 'center',
+    },
+    completeButton: {
+      backgroundColor: colors.primary,
+      marginHorizontal: spacing.lg,
+      marginBottom: spacing.lg,
+      paddingVertical: spacing.md,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    completeButtonText: {
+      ...typography.button,
+      color: colors.text,
+    },
+    disabledButton: {
+      backgroundColor: colors.border,
+    },
+    disabledButtonText: {
+      color: colors.textMuted,
+    },
+  });
 
+  return (
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[colors.primary, colors.primaryMuted]}
+        style={styles.gradient}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+              <Feather name="arrow-left" size={24} color={colors.white} />
+            </TouchableOpacity>
+            <Text style={styles.title}>Medições</Text>
+            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+              <Feather name="refresh-cw" size={24} color={colors.white} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Progress Indicator */}
+          <View style={styles.progressIndicator}>
+            <Text style={styles.stepInfo}>
+              Passo {getCurrentStepNumber()}/5 • {measurementPoints.length}/5 pontos
+            </Text>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${(measurementPoints.length / 5) * 100}%` }
+                ]} 
+              />
+            </View>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      {/* Instructions */}
       <View style={styles.instructionContainer}>
-        <Text style={styles.stepInfo}>
-          Passo {getCurrentStepNumber()}/5 • {measurementPoints.length}/5 pontos
-        </Text>
         <Text style={styles.instruction}>
           {stepInfo[currentStep].instruction}
         </Text>
@@ -205,8 +471,10 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
         </Text>
       </View>
 
+      {/* Image Container */}
       <View style={styles.imageContainer}>
         <ImageViewer
+          ref={imageViewerRef}
           imageUri={imageData.uri}
           measurementPoints={measurementPoints}
           onAddPoint={handleAddPoint}
@@ -214,58 +482,46 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
         />
       </View>
 
+      {/* Bottom Controls */}
       <View style={styles.bottomContainer}>
-        {/* Lista compacta de progresso */}
+        {/* Progress Grid */}
         <View style={styles.progressContainer}>
           <Text style={styles.pointsTitle}>Progresso das Medições</Text>
           <View style={styles.progressGrid}>
             {Object.entries(stepInfo)
               .filter(([key]) => key !== "complete")
               .map(([key, info]) => {
-                const hasPoint = measurementPoints.some(
-                  (p) => p.type === info.type
-                );
+                const hasPoint = measurementPoints.some((p) => p.type === info.type);
                 const isCurrent = key === currentStep;
 
                 return (
-                  <View
-                    key={key}
-                    style={[
-                      styles.progressItem,
-                      isCurrent && styles.currentProgressItem,
-                      hasPoint && styles.completedProgressItem,
-                    ]}
-                  >
+                  <View key={key} style={styles.progressItem}>
                     <View
                       style={[
-                        styles.progressIndicator,
+                        styles.progressIcon,
                         { backgroundColor: getPointColor(info.type) },
                       ]}
                     />
-                    <Text
-                      style={[
-                        styles.progressItemText,
-                        isCurrent && styles.currentProgressText,
-                        hasPoint && styles.completedProgressText,
-                      ]}
-                    >
+                    <Text style={styles.progressLabel}>
                       {info.title}
                     </Text>
-                    {hasPoint && <Text style={styles.checkmark}>✓</Text>}
+                    {hasPoint && (
+                      <Feather name="check" size={16} color={colors.success} />
+                    )}
                   </View>
                 );
               })}
           </View>
         </View>
 
-        {/* Botões sempre visíveis */}
-        <View style={styles.buttonContainer}>
+        {/* Buttons */}
+        <View style={styles.buttonsContainer}>
           {currentStep !== "leftPupil" && currentStep !== "complete" && (
             <TouchableOpacity
               style={styles.previousButton}
               onPress={handlePreviousStep}
             >
-              <Text style={styles.previousButtonText}>← Anterior</Text>
+              <Text style={styles.previousButtonText}>Anterior</Text>
             </TouchableOpacity>
           )}
 
@@ -273,213 +529,31 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
             <TouchableOpacity
               style={[
                 styles.calculateButton,
-                !validateMeasurementPoints(measurementPoints) &&
+                (!validateMeasurementPoints(measurementPoints) || isCompleting) &&
                   styles.disabledButton,
               ]}
               onPress={handleCalculateMeasurements}
-              disabled={!validateMeasurementPoints(measurementPoints)}
+              disabled={!validateMeasurementPoints(measurementPoints) || isCompleting}
             >
-              <Text
-                style={[
-                  styles.calculateButtonText,
-                  !validateMeasurementPoints(measurementPoints) &&
-                    styles.disabledButtonText,
-                ]}
-              >
-                Calcular Medições
-              </Text>
+              {isCompleting ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Text
+                  style={[
+                    styles.calculateButtonText,
+                    !validateMeasurementPoints(measurementPoints) &&
+                      styles.disabledButtonText,
+                  ]}
+                >
+                  Calcular Medições
+                </Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  backButton: {
-    padding: 5,
-  },
-  backButtonText: {
-    color: "#007AFF",
-    fontSize: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  resetButton: {
-    padding: 5,
-  },
-  resetButtonText: {
-    color: "#FF3B30",
-    fontSize: 14,
-  },
-  instructionContainer: {
-    backgroundColor: "#fff",
-    padding: 12,
-    marginHorizontal: 10,
-    marginBottom: 8,
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
-  },
-  stepInfo: {
-    fontSize: 14,
-    color: "#007AFF",
-    fontWeight: "600",
-    marginBottom: 5,
-  },
-  instruction: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 5,
-  },
-  subInstruction: {
-    fontSize: 14,
-    color: "#666",
-  },
-  imageContainer: {
-    flex: 1,
-    marginHorizontal: 8,
-    marginBottom: 8,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
-  },
-  bottomContainer: {
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    paddingBottom: 25, // Margem para evitar conflito com botões do sistema
-  },
-  progressContainer: {
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  progressGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  progressItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "48%",
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    marginBottom: 6,
-    borderRadius: 6,
-    backgroundColor: "#f9f9f9",
-  },
-  currentProgressItem: {
-    backgroundColor: "#E3F2FD",
-    borderWidth: 1,
-    borderColor: "#007AFF",
-  },
-  completedProgressItem: {
-    backgroundColor: "#E8F5E8",
-  },
-  progressIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  progressItemText: {
-    flex: 1,
-    fontSize: 12,
-    color: "#666",
-  },
-  currentProgressText: {
-    color: "#007AFF",
-    fontWeight: "600",
-  },
-  completedProgressText: {
-    color: "#4CAF50",
-    fontWeight: "500",
-  },
-  pointsTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 10,
-  },
-  checkmark: {
-    color: "#4CAF50",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    gap: 10,
-  },
-  previousButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#007AFF",
-    alignItems: "center",
-  },
-  previousButtonText: {
-    color: "#007AFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  calculateButton: {
-    flex: 2,
-    backgroundColor: "#4CAF50",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  calculateButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  disabledButton: {
-    backgroundColor: "#ccc",
-  },
-  disabledButtonText: {
-    color: "#999",
-  },
-});
 
 export default MeasurementScreen;
