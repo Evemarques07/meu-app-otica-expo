@@ -44,7 +44,7 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(({
 
   // Assume um aspect ratio 4:5 para a imagem
   const imageAspectRatio = 4 / 4.4;
-  const displayWidth = screenWidth * 0.9; // Aumentado de 0.95 para 0.98
+  const displayWidth = screenWidth * 0.98; // Aumentado de 0.9 para 0.98
   const displayHeight = displayWidth / imageAspectRatio;
 
   // Dimensões reais da imagem (será ajustado quando soubermos as dimensões reais)
