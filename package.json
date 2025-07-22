@@ -38,7 +38,8 @@
       "reactNativeDirectoryCheck": {
         "exclude": [
           "react-native-print"
-        ]
+        ],
+        "listUnknownPackages": false
       }
     }
   },
