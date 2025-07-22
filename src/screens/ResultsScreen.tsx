@@ -12,8 +12,8 @@ import {
   Modal,
   Image,
 } from "react-native";
-import { LinearGradient } from 'expo-linear-gradient';
-import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
 import {
   MeasurementResults,
   ImageData,
@@ -23,7 +23,7 @@ import {
 import { shareResultsPDF, shareResultsText } from "../utils/sharing";
 import { useThemedColors } from "../hooks/useThemedColors";
 import { ThemeSwitch } from "../components/ThemeSwitch";
-import { spacing, typography } from '../styles/layout';
+import { spacing, typography } from "../styles/layout";
 
 interface ResultsScreenProps {
   results: MeasurementResults;
@@ -113,7 +113,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <LinearGradient
         colors={[colors.primary, colors.primaryDark]}
         style={styles.headerGradient}
@@ -123,7 +125,9 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Feather name="arrow-left" size={24} color={colors.white} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.white }]}>Resultados</Text>
+          <Text style={[styles.title, { color: colors.white }]}>
+            Resultados
+          </Text>
           <View style={styles.shareButtons}>
             <ThemeSwitch size={20} />
             <TouchableOpacity
@@ -135,8 +139,16 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : (
                 <>
-                  <Feather name="message-circle" size={16} color={colors.primary} />
-                  <Text style={[styles.shareButtonText, { color: colors.primary }]}>Texto</Text>
+                  <Feather
+                    name="message-circle"
+                    size={16}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={[styles.shareButtonText, { color: colors.primary }]}
+                  >
+                    Texto
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -261,7 +273,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.newMeasurementButton, { backgroundColor: colors.primary }]}
+          style={[
+            styles.newMeasurementButton,
+            { backgroundColor: colors.primary },
+          ]}
           onPress={onStartNew}
         >
           <Feather name="camera" size={20} color={colors.white} />
@@ -323,7 +338,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7', // Será sobrescrito dinamicamente
+    backgroundColor: "#F2F2F7", // Será sobrescrito dinamicamente
   },
   headerGradient: {
     paddingBottom: spacing.md,
@@ -339,11 +354,11 @@ const styles = StyleSheet.create({
   backButton: {
     padding: spacing.xs,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   title: {
     ...typography.h2,
-    color: '#FFFFFF', // Será sobrescrito dinamicamente
+    color: "#FFFFFF", // Será sobrescrito dinamicamente
   },
   shareButtons: {
     flexDirection: "row",
@@ -362,7 +377,7 @@ const styles = StyleSheet.create({
   },
   successIconWrapper: {
     marginBottom: spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   // shareButton: {
   //   backgroundColor: "#007AFF",
@@ -377,7 +392,7 @@ const styles = StyleSheet.create({
   //   flexDirection: "row",
   //   gap: 8,
   // },
-  
+
   textShareButton: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderWidth: 1,

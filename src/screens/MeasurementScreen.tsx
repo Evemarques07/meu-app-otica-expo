@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
@@ -131,7 +132,13 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   const handlePreviousStep = () => {
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
-      // Remove o ponto da etapa atual antes de voltar
+      // Se estamos na etapa "complete", apenas volta para a etapa anterior sem remover pontos
+      if (currentStep === "complete") {
+        setCurrentStep(stepOrder[currentIndex - 1]);
+        return;
+      }
+
+      // Para outras etapas, remove o ponto da etapa atual antes de voltar
       const currentStepData = stepInfo[currentStep];
       if (currentStepData) {
         const filteredPoints = measurementPoints.filter(
@@ -212,8 +219,16 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     const hasPoint = measurementPoints.some((p) => p.type === pointType);
     const currentStepType = stepInfo[currentStep]?.type;
 
-    if (pointType === currentStepType) return colors.error;
+    // Se já tem o ponto, sempre mostra verde (sucesso)
     if (hasPoint) return colors.success;
+    // Se é o passo atual e ainda não tem ponto, mostra vermelho (apenas para etapas que não sejam "complete")
+    if (
+      pointType === currentStepType &&
+      !hasPoint &&
+      currentStep !== "complete"
+    )
+      return colors.error;
+    // Caso contrário, mostra cinza
     return colors.textMuted;
   };
 
@@ -224,17 +239,20 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       backgroundColor: colors.background,
     },
     gradient: {
-      paddingBottom: spacing.sm, // Reduzido de spacing.md
+      paddingBottom: spacing.lg, // Aumentado de spacing.md para spacing.lg para dar mais espaço
     },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.sm, // Reduzido de spacing.md
+      paddingVertical: spacing.md, // Reduzido de spacing.lg para spacing.md
+      paddingTop: spacing.lg, // Reduzido de spacing.xl para spacing.lg
+      minHeight: 70, // Reduzido de 80 para 70
     },
     safeArea: {
       flex: 1,
+      paddingTop: 0, // Garante que não há padding extra
     },
     backButton: {
       width: 40,
@@ -282,6 +300,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       backgroundColor: colors.surface,
       padding: spacing.sm, // Reduzido de spacing.md
       marginHorizontal: spacing.md,
+      marginTop: spacing.xs, // Reduzido de spacing.lg para spacing.xs
       marginBottom: spacing.xs, // Reduzido de spacing.sm
       borderRadius: 12,
     },
@@ -313,9 +332,10 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     },
     progressGrid: {
       flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      gap: spacing.xs,
+      justifyContent: "space-around", // Mudado de space-between para space-around
+      alignItems: "center",
+      paddingHorizontal: spacing.sm, // Adicionado padding horizontal
+      gap: 0, // Removido gap para usar justifyContent
     },
     progressIcon: {
       width: 24,
@@ -323,13 +343,16 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       borderRadius: 12,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: spacing.xs / 2,
+      marginBottom: 0, // Removido marginBottom para controle manual
     },
     progressLabel: {
       ...typography.caption,
       textAlign: "center",
       color: colors.textMuted,
       fontSize: 10,
+      minHeight: 28, // Altura mínima fixa para o texto
+      lineHeight: 12, // Altura da linha
+      marginTop: spacing.xs / 2, // Espaçamento consistente do topo
     },
     buttonsContainer: {
       flexDirection: "row",
@@ -420,6 +443,10 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     },
     progressItem: {
       alignItems: "center",
+      flex: 1, // Adicionado flex para distribuir igualmente
+      maxWidth: 60, // Largura máxima para manter uniformidade
+      minHeight: 60, // Altura mínima para alinhar todas
+      justifyContent: "flex-start", // Alinha do topo
     },
     completeButton: {
       backgroundColor: colors.primary,
@@ -443,6 +470,12 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.primary}
+        translucent={false}
+        hidden={false}
+      />
       <LinearGradient
         colors={[colors.primary, colors.primaryMuted]}
         style={styles.gradient}
@@ -532,12 +565,18 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
         {/* Buttons */}
         <View style={styles.buttonsContainer}>
-          {currentStep !== "leftPupil" && currentStep !== "complete" && (
+          {currentStep !== "leftPupil" && (
             <TouchableOpacity
               style={styles.previousButton}
               onPress={handlePreviousStep}
             >
               <Text style={styles.previousButtonText}>Anterior</Text>
+            </TouchableOpacity>
+          )}
+
+          {currentStep === "leftPupil" && measurementPoints.length === 0 && (
+            <TouchableOpacity style={styles.previousButton} onPress={onBack}>
+              <Text style={styles.previousButtonText}>Voltar para Cartão</Text>
             </TouchableOpacity>
           )}
 
