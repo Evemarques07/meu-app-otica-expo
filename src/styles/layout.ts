@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { colors } from './colors';
+import { StyleSheet } from "react-native";
+import { colors } from "./colors";
 
 // Tamanhos e espaçamentos
 export const spacing = {
@@ -22,23 +22,23 @@ export const borderRadius = {
 };
 
 export const fontSize = {
-  xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 18,
-  xl: 20,
-  xxl: 24,
-  xxxl: 28,
-  huge: 32,
+  xs: 10,
+  sm: 12,
+  md: 14,
+  lg: 16,
+  xl: 18,
+  xxl: 20,
+  xxxl: 22,
+  huge: 24,
 };
 
 export const fontWeight = {
-  light: '300' as const,
-  normal: '400' as const,
-  medium: '500' as const,
-  semibold: '600' as const,
-  bold: '700' as const,
-  heavy: '800' as const,
+  light: "300" as const,
+  normal: "400" as const,
+  medium: "500" as const,
+  semibold: "600" as const,
+  bold: "700" as const,
+  heavy: "800" as const,
 };
 
 // Estilos de tipografia reutilizáveis
@@ -48,87 +48,87 @@ export const typography = StyleSheet.create({
     fontSize: fontSize.xxxl,
     fontWeight: fontWeight.bold,
     color: colors.text,
-    lineHeight: 36,
+    lineHeight: 28,
   },
   subtitle: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.medium,
     color: colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: 22,
   },
-  
+
   // Headers
   h1: {
     fontSize: fontSize.xxl,
     fontWeight: fontWeight.bold,
     color: colors.text,
-    lineHeight: 32,
+    lineHeight: 26,
   },
   h2: {
     fontSize: fontSize.xl,
     fontWeight: fontWeight.semibold,
     color: colors.text,
-    lineHeight: 28,
+    lineHeight: 24,
   },
   h3: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
     color: colors.text,
-    lineHeight: 24,
+    lineHeight: 22,
   },
-  
+
   // Corpo de texto
   body: {
     fontSize: fontSize.md,
     fontWeight: fontWeight.normal,
     color: colors.text,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   bodySecondary: {
     fontSize: fontSize.md,
     fontWeight: fontWeight.normal,
     color: colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   bodyMuted: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.normal,
     color: colors.textMuted,
-    lineHeight: 20,
+    lineHeight: 18,
   },
-  
+
   // Rótulos
   label: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
     color: colors.text,
-    lineHeight: 18,
+    lineHeight: 16,
   },
   labelSecondary: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
     color: colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: 16,
   },
-  
+
   // Botões
   button: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.semibold,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   buttonSmall: {
     fontSize: fontSize.md,
     fontWeight: fontWeight.medium,
-    lineHeight: 20,
+    lineHeight: 18,
   },
-  
+
   // Captions
   caption: {
     fontSize: fontSize.xs,
     fontWeight: fontWeight.normal,
     color: colors.textMuted,
-    lineHeight: 16,
+    lineHeight: 14,
   },
 });
 

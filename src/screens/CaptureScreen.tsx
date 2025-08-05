@@ -11,16 +11,22 @@ import {
   Pressable,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   ensureCameraPermission,
   ensureGalleryPermission,
 } from "../utils/permissions";
 import { ImageData } from "../types";
-import { useThemedColors } from '../hooks/useThemedColors';
-import { ThemeSwitch } from '../components/ThemeSwitch';
-import { spacing, borderRadius, typography, shadows, containers } from '../styles/layout';
+import { useThemedColors } from "../hooks/useThemedColors";
+import { ThemeSwitch } from "../components/ThemeSwitch";
+import {
+  spacing,
+  borderRadius,
+  typography,
+  shadows,
+  containers,
+} from "../styles/layout";
 
 interface CaptureScreenProps {
   onImageCaptured: (imageData: ImageData) => void;
@@ -28,95 +34,98 @@ interface CaptureScreenProps {
 
 const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
   const colors = useThemedColors();
-  
+
   // Estilos dinâmicos baseados no tema
   const styles = StyleSheet.create({
     header: {
       alignItems: "center",
-      marginBottom: spacing.xl,
-    },
-    topRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      width: '100%',
       marginBottom: spacing.md,
     },
+    topRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      width: "100%",
+      marginBottom: spacing.sm,
+    },
     logoContainer: {
-      alignItems: 'center',
+      alignItems: "center",
     },
     logo: {
-      width: 90,
-      height: 90,
-      borderRadius: 45,
+      width: 70,
+      height: 70,
+      borderRadius: 35,
       borderWidth: 2,
       borderColor: colors.primary,
     },
     title: {
       ...typography.title,
-      marginBottom: spacing.md,
+      marginBottom: spacing.sm,
       color: colors.text,
+      fontSize: 20,
     },
     subtitle: {
       ...typography.subtitle,
       textAlign: "center",
       color: colors.textMuted,
+      fontSize: 14,
     },
     card: {
       ...containers.card,
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
-      marginBottom: spacing.xl,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
+      marginBottom: spacing.lg,
       backgroundColor: colors.surface,
     },
     divider: {
       height: 1,
       backgroundColor: colors.border,
-      marginLeft: 58, // Alinhado com o texto
+      marginLeft: 50, // Alinhado com o texto
     },
     instruction: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: spacing.md,
+      paddingVertical: spacing.sm,
     },
     instructionIconContainer: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       backgroundColor: colors.primaryMuted,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: spacing.md,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: spacing.sm,
     },
     instructionTextContainer: {
       flex: 1,
     },
     instructionTitle: {
       ...typography.label,
-      fontSize: 16,
-      marginBottom: 4,
+      fontSize: 14,
+      marginBottom: 2,
       color: colors.text,
     },
     instructionText: {
       ...typography.bodySecondary,
-      lineHeight: 22,
+      lineHeight: 18,
       color: colors.textMuted,
+      fontSize: 12,
     },
     buttonsContainer: {
-      gap: spacing.md,
-      marginBottom: spacing.xl,
+      gap: spacing.sm,
+      marginBottom: spacing.lg,
     },
     button: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
       backgroundColor: colors.primary,
-      paddingVertical: spacing.lg + 2,
+      paddingVertical: spacing.md,
       borderRadius: borderRadius.md,
-      gap: spacing.md,
+      gap: spacing.sm,
       ...shadows.medium,
       borderWidth: 2,
-      borderColor: 'transparent',
+      borderColor: "transparent",
     },
     buttonPressed: {
       transform: [{ scale: 0.98 }],
@@ -134,39 +143,52 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
       color: colors.primary,
     },
     tipContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       backgroundColor: colors.primaryMuted,
       borderRadius: borderRadius.md,
-      padding: spacing.md,
-      gap: spacing.md,
+      padding: spacing.sm,
+      gap: spacing.sm,
       borderWidth: 1,
-      borderColor: colors.primary
+      borderColor: colors.primary,
     },
     tipText: {
       ...typography.bodySecondary,
-      lineHeight: 21,
+      lineHeight: 18,
       flex: 1,
       color: colors.text,
+      fontSize: 12,
     },
   });
 
   // Componente reutilizável para cada linha de instrução
-  const InstructionItem = ({ icon, title, text }: { icon: any; title: string; text: string }) => (
+  const InstructionItem = ({
+    icon,
+    title,
+    text,
+  }: {
+    icon: any;
+    title: string;
+    text: string;
+  }) => (
     <>
       <View style={styles.instruction}>
         <View style={styles.instructionIconContainer}>
-          <Feather name={icon} size={22} color={colors.primary} />
+          <Feather name={icon} size={18} color={colors.primary} />
         </View>
         <View style={styles.instructionTextContainer}>
-          <Text style={styles.instructionTitle}>{title}</Text>
-          <Text style={styles.instructionText}>{text}</Text>
+          <Text style={styles.instructionTitle} allowFontScaling={false}>
+            {title}
+          </Text>
+          <Text style={styles.instructionText} allowFontScaling={false}>
+            {text}
+          </Text>
         </View>
       </View>
       <View style={styles.divider} />
     </>
   );
-  
+
   // Animação de fade-in para o conteúdo
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -207,7 +229,7 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.9,
       });
-      
+
       if (!result.canceled && result.assets?.[0]) {
         const { uri, width, height } = result.assets[0];
         onImageCaptured({ uri, width, height });
@@ -236,53 +258,74 @@ const CaptureScreen: React.FC<CaptureScreenProps> = ({ onImageCaptured }) => {
               </View>
               <ThemeSwitch />
             </View>
-            <Text style={styles.title}>Medição Inteligente</Text>
-            <Text style={styles.subtitle}>
+            <Text style={styles.title} allowFontScaling={false}>
+              Medição Inteligente
+            </Text>
+            <Text style={styles.subtitle} allowFontScaling={false}>
               Siga os passos abaixo para uma medição precisa da sua DNP.
             </Text>
           </View>
 
           <View style={styles.card}>
-            <InstructionItem 
+            <InstructionItem
               icon="camera"
               title="Posicionamento"
               text="Fique de frente para a câmera e olhe diretamente para a lente."
             />
-            <InstructionItem 
+            <InstructionItem
               icon="credit-card"
               title="Objeto de Referência"
               text="Segure um cartão padrão (crédito/débito) contra a testa."
             />
-            <InstructionItem 
+            <InstructionItem
               icon="sun"
               title="Iluminação Ideal"
               text="Escolha um ambiente bem iluminado, evitando sombras no rosto."
             />
-            <InstructionItem 
+            <InstructionItem
               icon="zoom-in"
               title="Enquadramento"
               text="Garanta que seu rosto e o cartão estejam nítidos e visíveis."
             />
           </View>
-          
+
           <View style={styles.buttonsContainer}>
-            <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={handleTakePhoto}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={handleTakePhoto}
+            >
               <Feather name="camera" size={20} color={colors.text} />
-              <Text style={styles.buttonText}>Tirar Foto Agora</Text>
+              <Text style={styles.buttonText} allowFontScaling={false}>
+                Tirar Foto Agora
+              </Text>
             </Pressable>
 
-            <Pressable style={({ pressed }) => [styles.button, styles.secondaryButton, pressed && styles.buttonPressed]} onPress={handleSelectFromGallery}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                styles.secondaryButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={handleSelectFromGallery}
+            >
               <Feather name="image" size={20} color={colors.primary} />
-              <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+              <Text
+                style={[styles.buttonText, styles.secondaryButtonText]}
+                allowFontScaling={false}
+              >
                 Usar Foto da Galeria
               </Text>
             </Pressable>
           </View>
 
           <View style={styles.tipContainer}>
-            <Feather name="info" size={20} color={colors.primary} />
-            <Text style={styles.tipText}>
-              <Text style={{fontWeight: 'bold'}}>Dica:</Text> Fotos com a câmera traseira geralmente possuem maior qualidade e precisão.
+            <Feather name="info" size={16} color={colors.primary} />
+            <Text style={styles.tipText} allowFontScaling={false}>
+              <Text style={{ fontWeight: "bold" }}>Dica:</Text> Fotos com a
+              câmera traseira geralmente possuem maior qualidade e precisão.
             </Text>
           </View>
         </Animated.View>
