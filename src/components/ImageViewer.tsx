@@ -18,7 +18,7 @@ import Animated, {
   useSharedValue,
   runOnJS,
 } from "react-native-reanimated";
-import Svg, { Circle, Line, G } from "react-native-svg";
+import Svg, { Line, G } from "react-native-svg";
 import { captureRef } from "react-native-view-shot";
 import { Point, MeasurementType } from "../types";
 
@@ -26,15 +26,26 @@ interface ImageViewerProps {
   imageUri: string;
   measurementPoints: (Point & { id: string; type?: MeasurementType })[];
   onAddPoint: (point: Point) => void;
+  onUpdatePoint: (pointId: string, newPoint: Point) => void;
   isPointAddingMode: boolean;
 }
 
 export interface ImageViewerRef {
   captureImage: () => Promise<string>;
+  moveMarker: (markerId: string, deltaX: number, deltaY: number) => void;
 }
 
 const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
-  ({ imageUri, measurementPoints, onAddPoint, isPointAddingMode }, ref) => {
+  (
+    {
+      imageUri,
+      measurementPoints,
+      onAddPoint,
+      onUpdatePoint,
+      isPointAddingMode,
+    },
+    ref
+  ) => {
     const { width: screenWidth } = Dimensions.get("window");
     const viewRef = useRef<View>(null);
 
@@ -153,8 +164,7 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
 
       // Tamanho base da mira que diminui com o zoom - agora mais fino
       const baseSize = 10; // Reduzido de 12 para 10
-      const crosshairSize = baseSize / Math.max(1, scale.value * 0.8); // Aumentado multiplicador para diminuir mais com zoom
-      const circleRadius = crosshairSize * 0.7; // Reduzido de 0.8 para 0.7
+      const crosshairSize = baseSize; // Tamanho fixo para evitar warning do Reanimated
       const crossLength = crosshairSize * 1.4; // Aumentado de 1.2 para 1.4 (cruz mais longa)
 
       // Cores baseadas no tipo do ponto
@@ -204,16 +214,6 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
 
       return (
         <G key={point.id}>
-          {/* Círculo externo */}
-          <Circle
-            cx={screenPoint.x}
-            cy={screenPoint.y}
-            r={circleRadius}
-            fill={fillColor}
-            stroke={strokeColor}
-            strokeWidth={1} // Reduzido de 2 para 1
-          />
-
           {/* Cruz horizontal */}
           <Line
             x1={screenPoint.x - crossLength}
@@ -221,7 +221,7 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
             x2={screenPoint.x + crossLength}
             y2={screenPoint.y}
             stroke={strokeColor}
-            strokeWidth={1} // Reduzido de 2 para 1
+            strokeWidth={2} // Aumentado para 2 para melhor visibilidade
           />
 
           {/* Cruz vertical */}
@@ -231,16 +231,10 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
             x2={screenPoint.x}
             y2={screenPoint.y + crossLength}
             stroke={strokeColor}
-            strokeWidth={1} // Reduzido de 2 para 1
+            strokeWidth={2} // Aumentado para 2 para melhor visibilidade
           />
 
-          {/* Ponto central */}
-          <Circle
-            cx={screenPoint.x}
-            cy={screenPoint.y}
-            r={1} // Reduzido de 1.5 para 1
-            fill={strokeColor}
-          />
+          {/* Ponto central mais visível - removido círculo para usar apenas cruz */}
         </G>
       );
     };
@@ -273,7 +267,7 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
       );
     };
 
-    // Renderiza uma linha vertical passando pelo centro nasal
+    // Renderiza uma linha vertical passando pelo centro nasal (usada para calcular DPN esquerda e direita)
     const renderNasalCenterLine = () => {
       const bridgeCenter = measurementPoints.find(
         (p) => p.type === MeasurementType.BRIDGE_CENTER
@@ -297,6 +291,69 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
       );
     };
 
+    // Renderiza as linhas de projeção DPN (das pupilas até a linha vertical da ponte)
+    const renderDPNProjectionLines = () => {
+      const leftPupil = measurementPoints.find(
+        (p) => p.type === MeasurementType.LEFT_PUPIL
+      );
+      const rightPupil = measurementPoints.find(
+        (p) => p.type === MeasurementType.RIGHT_PUPIL
+      );
+      const bridgeCenter = measurementPoints.find(
+        (p) => p.type === MeasurementType.BRIDGE_CENTER
+      );
+
+      if (!leftPupil || !rightPupil || !bridgeCenter) return null;
+
+      const leftScreen = imageToScreenCoordinates(leftPupil);
+      const rightScreen = imageToScreenCoordinates(rightPupil);
+      const centerScreen = imageToScreenCoordinates(bridgeCenter);
+
+      return (
+        <>
+          {/* Linha da DPN Esquerda */}
+          <Line
+            x1={leftScreen.x}
+            y1={leftScreen.y}
+            x2={centerScreen.x}
+            y2={leftScreen.y}
+            stroke="#FF6600"
+            strokeWidth={1}
+            strokeDasharray="3,2"
+            opacity={0.6}
+          />
+          {/* Linha da DPN Direita */}
+          <Line
+            x1={rightScreen.x}
+            y1={rightScreen.y}
+            x2={centerScreen.x}
+            y2={rightScreen.y}
+            stroke="#FF6600"
+            strokeWidth={1}
+            strokeDasharray="3,2"
+            opacity={0.6}
+          />
+        </>
+      );
+    };
+
+    // Função para mover um marcador
+    const moveMarker = (markerId: string, deltaX: number, deltaY: number) => {
+      const marker = measurementPoints.find((p) => p.id === markerId);
+      if (!marker) return;
+
+      // Converter delta de pixels da tela para coordenadas da imagem
+      const imageDeltaX = (deltaX / displayWidth) * imageWidth;
+      const imageDeltaY = (deltaY / displayHeight) * imageHeight;
+
+      const newPoint: Point = {
+        x: Math.max(0, Math.min(imageWidth, marker.x + imageDeltaX)),
+        y: Math.max(0, Math.min(imageHeight, marker.y + imageDeltaY)),
+      };
+
+      onUpdatePoint(markerId, newPoint);
+    };
+
     // Função para capturar a imagem como screenshot
     useImperativeHandle(ref, () => ({
       captureImage: async (): Promise<string> => {
@@ -314,6 +371,7 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
           throw error;
         }
       },
+      moveMarker,
     }));
 
     // Função simplificada para tap usando TouchableWithoutFeedback
@@ -365,6 +423,9 @@ const ImageViewer = forwardRef<ImageViewerRef, ImageViewerProps>(
                       >
                         {/* Linha vertical do centro nasal (renderizada primeiro para ficar atrás) */}
                         {renderNasalCenterLine()}
+
+                        {/* Linhas de projeção DPN (mostram como as DPNs são calculadas) */}
+                        {renderDPNProjectionLines()}
 
                         {/* Linha horizontal da DP (renderizada em segundo para ficar atrás dos pontos) */}
                         {renderDPLine()}

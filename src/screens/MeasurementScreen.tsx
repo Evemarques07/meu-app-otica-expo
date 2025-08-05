@@ -4,14 +4,15 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
   ActivityIndicator,
   StatusBar,
+  // SafeAreaView é recomendado para garantir que o conteúdo não fique sob notches ou barras
+  SafeAreaView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import ImageViewer, { ImageViewerRef } from "../components/ImageViewer";
+import MarkerControl from "../components/MarkerControl";
 import {
   ImageData,
   MeasurementPoint,
@@ -19,7 +20,7 @@ import {
   Point,
   CalibrationData,
   MeasurementResults,
-} from "../types";
+} from "../types/index";
 import {
   calculateMeasurements,
   validateMeasurementPoints,
@@ -58,38 +59,42 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   >([]);
   const [currentStep, setCurrentStep] = useState<MeasurementStep>("leftPupil");
   const [isCompleting, setIsCompleting] = useState(false);
+  const [selectedMarker, setSelectedMarker] = useState<MeasurementPoint | null>(
+    null
+  );
+  const [showMarkerControl, setShowMarkerControl] = useState(false);
   const imageViewerRef = useRef<ImageViewerRef>(null);
 
   const stepInfo = {
     leftPupil: {
-      title: "Pupila Esquerda",
-      instruction: "Toque no centro da pupila esquerda",
+      title: "Pupila Esquerda (da pessoa)",
+      instruction: "Toque no centro da pupila esquerda da pessoa na foto",
       type: MeasurementType.LEFT_PUPIL,
     },
     rightPupil: {
-      title: "Pupila Direita",
-      instruction: "Toque no centro da pupila direita",
+      title: "Pupila Direita (da pessoa)",
+      instruction: "Toque no centro da pupila direita da pessoa na foto",
       type: MeasurementType.RIGHT_PUPIL,
     },
     bridgeCenter: {
-      title: "Centro da Ponte",
-      instruction: "Toque no centro da ponte nasal (meio da armação)",
+      title: "Centro da Ponte Nasal",
+      instruction: "Toque no centro da ponte nasal ou ponta do nariz",
       type: MeasurementType.BRIDGE_CENTER,
     },
     leftLensBottom: {
-      title: "Base da Lente Esquerda",
-      instruction: "Toque na linha inferior da lente esquerda",
+      title: "Base da Lente Esquerda (da pessoa)",
+      instruction: "Toque na linha inferior da lente esquerda da pessoa",
       type: MeasurementType.LEFT_LENS_BOTTOM,
     },
     rightLensBottom: {
-      title: "Base da Lente Direita",
-      instruction: "Toque na linha inferior da lente direita",
+      title: "Base da Lente Direita (da pessoa)",
+      instruction: "Toque na linha inferior da lente direita da pessoa",
       type: MeasurementType.RIGHT_LENS_BOTTOM,
     },
     complete: {
       title: "Concluído",
       instruction: "Todas as medições foram coletadas",
-      type: MeasurementType.LEFT_PUPIL, // Valor dummy
+      type: MeasurementType.LEFT_PUPIL, // tipo irrelevante aqui
     },
   };
 
@@ -114,41 +119,49 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
       label: stepData.title,
     };
 
-    // Remove ponto anterior do mesmo tipo se existir
     const filteredPoints = measurementPoints.filter(
       (p) => p.type !== stepData.type
     );
     const updatedPoints = [...filteredPoints, newPoint];
-
     setMeasurementPoints(updatedPoints);
 
-    // Avança para o próximo passo
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
     }
   };
 
+  const handleUpdatePoint = (pointId: string, newPoint: Point) => {
+    setMeasurementPoints((prev) =>
+      prev.map((p) =>
+        p.id === pointId ? { ...p, x: newPoint.x, y: newPoint.y } : p
+      )
+    );
+  };
+
+  const handleMarkerMove = (
+    marker: MeasurementPoint,
+    deltaX: number,
+    deltaY: number
+  ) => {
+    if (imageViewerRef.current) {
+      imageViewerRef.current.moveMarker(marker.id, deltaX, deltaY);
+    }
+  };
+
   const handlePreviousStep = () => {
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
-      // Se estamos na etapa "complete", apenas volta para a etapa anterior sem remover pontos
-      if (currentStep === "complete") {
-        setCurrentStep(stepOrder[currentIndex - 1]);
-        return;
-      }
+      const prevStep = stepOrder[currentIndex - 1];
+      setCurrentStep(prevStep);
 
-      // Para outras etapas, remove o ponto da etapa atual antes de voltar
-      const currentStepData = stepInfo[currentStep];
-      if (currentStepData) {
+      if (currentStep !== "complete") {
+        const currentStepData = stepInfo[currentStep];
         const filteredPoints = measurementPoints.filter(
           (p) => p.type !== currentStepData.type
         );
         setMeasurementPoints(filteredPoints);
       }
-
-      // Volta para a etapa anterior
-      setCurrentStep(stepOrder[currentIndex - 1]);
     }
   };
 
@@ -156,7 +169,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
     if (!validateMeasurementPoints(measurementPoints)) {
       Alert.alert(
         "Medições Incompletas",
-        "Por favor, marque todos os pontos necessários antes de continuar."
+        "Por favor, marque todos os pontos necessários."
       );
       return;
     }
@@ -165,29 +178,28 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
 
     try {
       const results = calculateMeasurements(measurementPoints, calibrationData);
-
       if (!results) {
         Alert.alert(
           "Erro no Cálculo",
-          "Não foi possível calcular as medições. Verifique se todos os pontos foram marcados corretamente."
+          "Não foi possível calcular as medições."
         );
+        setIsCompleting(false);
         return;
       }
 
-      // Capturar a imagem com os marcadores
       let capturedImageUri: string | undefined;
       try {
         if (imageViewerRef.current) {
           capturedImageUri = await imageViewerRef.current.captureImage();
-          console.log("Imagem capturada:", capturedImageUri);
         }
       } catch (error) {
         console.warn("Erro ao capturar imagem:", error);
-        // Continuar mesmo se a captura falhar
       }
 
       onMeasurementComplete(results, measurementPoints, capturedImageUri);
-    } finally {
+    } catch (error) {
+      console.error("Erro ao calcular medições:", error);
+      Alert.alert("Erro Inesperado", "Ocorreu um erro ao processar os dados.");
       setIsCompleting(false);
     }
   };
@@ -195,7 +207,7 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
   const handleReset = () => {
     Alert.alert(
       "Recomeçar Medições",
-      "Tem certeza de que deseja apagar todos os pontos e recomeçar?",
+      "Tem certeza de que deseja apagar todos os pontos?",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -204,389 +216,311 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
           onPress: () => {
             setMeasurementPoints([]);
             setCurrentStep("leftPupil");
+            setSelectedMarker(null);
+            setShowMarkerControl(false);
           },
         },
       ]
     );
   };
 
-  const getCurrentStepNumber = () => {
-    const currentIndex = stepOrder.indexOf(currentStep);
-    return currentStep === "complete" ? 5 : currentIndex + 1;
-  };
-
-  const getPointColor = (pointType: MeasurementType) => {
-    const hasPoint = measurementPoints.some((p) => p.type === pointType);
-    const currentStepType = stepInfo[currentStep]?.type;
-
-    // Se já tem o ponto, sempre mostra verde (sucesso)
-    if (hasPoint) return colors.success;
-    // Se é o passo atual e ainda não tem ponto, mostra vermelho (apenas para etapas que não sejam "complete")
-    if (
-      pointType === currentStepType &&
-      !hasPoint &&
-      currentStep !== "complete"
-    )
-      return colors.error;
-    // Caso contrário, mostra cinza
-    return colors.textMuted;
-  };
-
-  // Estilos dinâmicos baseados no tema
   const styles = StyleSheet.create({
-    container: {
+    safeArea: {
       flex: 1,
       backgroundColor: colors.background,
     },
-    gradient: {
-      paddingBottom: spacing.lg, // Aumentado de spacing.md para spacing.lg para dar mais espaço
+    container: {
+      flex: 1,
     },
-    header: {
+    fullscreenImageContainer: {
+      flex: 1,
+      width: "100%",
+      height: "100%",
+    },
+    overlayHeader: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md, // Reduzido de spacing.lg para spacing.md
-      paddingTop: spacing.lg, // Reduzido de spacing.xl para spacing.lg
-      minHeight: 70, // Reduzido de 80 para 70
+      paddingTop: StatusBar.currentHeight
+        ? StatusBar.currentHeight + spacing.sm
+        : spacing.xl,
+      paddingBottom: spacing.md,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      zIndex: 10,
     },
-    safeArea: {
-      flex: 1,
-      paddingTop: 0, // Garante que não há padding extra
-    },
-    backButton: {
+    overlayBackButton: {
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
       justifyContent: "center",
       alignItems: "center",
     },
-    title: {
-      ...typography.title,
-      color: colors.text,
-      textAlign: "center",
+    overlayHeaderCenter: {
       flex: 1,
-    },
-    resetButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
-      justifyContent: "center",
       alignItems: "center",
-    },
-    progressIndicator: {
-      paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.sm, // Reduzido de spacing.md
-    },
-    stepInfo: {
-      ...typography.caption,
-      color: colors.text,
-      textAlign: "center",
-      marginBottom: spacing.xs,
-    },
-    progressBar: {
-      height: 4,
-      backgroundColor: "rgba(255, 255, 255, 0.3)",
-      borderRadius: 2,
-    },
-    progressFill: {
-      height: "100%",
-      backgroundColor: colors.text,
-      borderRadius: 2,
-    },
-    instructionContainer: {
-      backgroundColor: colors.surface,
-      padding: spacing.sm, // Reduzido de spacing.md
       marginHorizontal: spacing.md,
-      marginTop: spacing.xs, // Reduzido de spacing.lg para spacing.xs
-      marginBottom: spacing.xs, // Reduzido de spacing.sm
-      borderRadius: 12,
     },
-    instruction: {
-      ...typography.subtitle,
-      marginBottom: spacing.xs,
-      color: colors.text,
-    },
-    subInstruction: {
-      ...typography.body,
-      color: colors.textMuted,
-    },
-    bottomContainer: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      paddingTop: spacing.sm, // Reduzido de spacing.md
-      paddingBottom: spacing.md, // Adicionado padding bottom extra
-    },
-    progressContainer: {
-      paddingHorizontal: spacing.md,
-      paddingBottom: spacing.sm, // Reduzido de spacing.md
-    },
-    pointsTitle: {
-      ...typography.subtitle,
-      marginBottom: spacing.sm,
-      textAlign: "center",
-      color: colors.text,
-    },
-    progressGrid: {
+    overlayHeaderButtons: {
       flexDirection: "row",
-      justifyContent: "space-around", // Mudado de space-between para space-around
-      alignItems: "center",
-      paddingHorizontal: spacing.sm, // Adicionado padding horizontal
-      gap: 0, // Removido gap para usar justifyContent
-    },
-    progressIcon: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 0, // Removido marginBottom para controle manual
-    },
-    progressLabel: {
-      ...typography.caption,
-      textAlign: "center",
-      color: colors.textMuted,
-      fontSize: 10,
-      minHeight: 28, // Altura mínima fixa para o texto
-      lineHeight: 12, // Altura da linha
-      marginTop: spacing.xs / 2, // Espaçamento consistente do topo
-    },
-    buttonsContainer: {
-      flexDirection: "row",
-      paddingHorizontal: spacing.md,
-      paddingBottom: spacing.xl, // Aumentado para spacing.xl para mais espaço
-      paddingTop: spacing.sm, // Adicionado padding top
-      gap: spacing.sm,
-      marginBottom: spacing.md, // Adicionado margem extra
-    },
-    previousButton: {
-      flex: 1,
-      backgroundColor: colors.border,
-      paddingVertical: spacing.sm,
-      borderRadius: 8,
       alignItems: "center",
     },
-    previousButtonText: {
-      ...typography.button,
-      color: colors.textMuted,
-    },
-    calculateButton: {
-      flex: 2,
-      backgroundColor: colors.primary,
-      paddingVertical: spacing.sm,
-      borderRadius: 8,
-      alignItems: "center",
-    },
-    calculateButtonText: {
-      ...typography.button,
-      color: colors.text,
-    },
-    headerButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: "rgba(255,255,255,0.2)",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    headerTitle: {
+    overlayTitle: {
       ...typography.title,
-      color: colors.text,
-      textAlign: "center",
+      color: colors.white,
+      fontSize: 18,
+      fontWeight: "bold",
     },
-    content: {
-      flex: 1,
-      backgroundColor: colors.background,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      marginTop: -24,
-      paddingTop: spacing.lg,
+    overlaySubtitle: {
+      ...typography.bodySecondary,
+      color: colors.white,
+      fontSize: 14,
+      marginTop: 2,
     },
-    instructionCard: {
-      backgroundColor: colors.surface,
-      marginHorizontal: spacing.lg,
-      padding: spacing.lg,
-      borderRadius: 16,
+    overlayResetButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    overlayInstructions: {
+      position: "absolute",
+      top: 120,
+      left: spacing.lg,
+      right: spacing.lg,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      padding: spacing.md,
+      borderRadius: 8,
+      zIndex: 10,
+    },
+    overlayInstructionText: {
       ...typography.body,
+      color: colors.white,
+      textAlign: "center",
+      fontSize: 16,
     },
-    stepProgress: {
-      ...typography.label,
-      color: colors.text,
-      marginBottom: spacing.sm,
+    overlayMarkerControl: {
+      position: "absolute",
+      bottom: 120,
+      left: spacing.sm,
+      right: spacing.sm,
+      zIndex: 10,
     },
-    stepTitle: {
-      ...typography.subtitle,
-      color: colors.textMuted,
-      marginBottom: spacing.xs,
-    },
-    imageContainer: {
-      flex: 1,
-      marginHorizontal: spacing.md, // Mantido
-      marginVertical: spacing.xs, // Reduzido de spacing.lg para spacing.xs
-      borderRadius: 12,
-      overflow: "hidden",
-      backgroundColor: colors.surface,
-    },
-    bottomPanel: {
-      backgroundColor: colors.surface,
-      paddingTop: spacing.lg,
-    },
-    progressSection: {
+    overlayBottomControls: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
       flexDirection: "row",
       justifyContent: "space-around",
+      alignItems: "center",
       paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.lg,
-      backgroundColor: colors.surface,
+      paddingVertical: spacing.lg,
+      paddingBottom: spacing.xl,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      zIndex: 10,
     },
-    progressItem: {
+    overlayButton: {
+      flexDirection: "row",
       alignItems: "center",
-      flex: 1, // Adicionado flex para distribuir igualmente
-      maxWidth: 60, // Largura máxima para manter uniformidade
-      minHeight: 60, // Altura mínima para alinhar todas
-      justifyContent: "flex-start", // Alinha do topo
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: 20,
+      minWidth: 80,
     },
-    completeButton: {
-      backgroundColor: colors.primary,
-      marginHorizontal: spacing.lg,
-      marginBottom: spacing.lg,
-      paddingVertical: spacing.md,
-      borderRadius: 12,
-      alignItems: "center",
-    },
-    completeButtonText: {
+    overlayButtonText: {
       ...typography.button,
-      color: colors.text,
+      fontSize: 14,
+      marginLeft: spacing.xs,
     },
-    disabledButton: {
-      backgroundColor: colors.border,
+    overlayCompleteButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderRadius: 25,
+      minWidth: 120,
     },
-    disabledButtonText: {
-      color: colors.textMuted,
+    overlayProgress: {
+      position: "absolute",
+      bottom: 80,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 10,
+    },
+    progressDots: {
+      flexDirection: "row",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: 20,
+    },
+    progressDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginHorizontal: 4,
     },
   });
 
   return (
-    <View style={styles.container}>
+    // **MUDANÇA: Troquei SafeAreaView por View e apliquei o estilo safeArea na View principal.**
+    // A SafeAreaView será usada internamente se necessário, mas a View principal
+    // controla todo o contêiner.
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={colors.primary}
-        translucent={false}
+        backgroundColor="transparent"
+        translucent={true}
         hidden={false}
       />
-      <LinearGradient
-        colors={[colors.primary, colors.primaryMuted]}
-        style={styles.gradient}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <Feather name="arrow-left" size={24} color={colors.white} />
-            </TouchableOpacity>
-            <Text style={styles.title}>Medições</Text>
-            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-              <Feather name="refresh-cw" size={24} color={colors.white} />
-            </TouchableOpacity>
-          </View>
 
-          {/* Progress Indicator */}
-          <View style={styles.progressIndicator}>
-            <Text style={styles.stepInfo}>
-              Passo {getCurrentStepNumber()}/5 • {measurementPoints.length}/5
-              pontos
+      <View style={styles.container}>
+        {/* Imagem em tela cheia */}
+        <View style={styles.fullscreenImageContainer}>
+          <ImageViewer
+            ref={imageViewerRef}
+            imageUri={imageData.uri}
+            measurementPoints={measurementPoints}
+            onAddPoint={handleAddPoint}
+            onUpdatePoint={handleUpdatePoint}
+            isPointAddingMode={currentStep !== "complete"}
+          />
+        </View>
+
+        {/* Header sobreposto */}
+        <View style={styles.overlayHeader}>
+          <TouchableOpacity style={styles.overlayBackButton} onPress={onBack}>
+            <Feather name="arrow-left" size={20} color={colors.white} />
+          </TouchableOpacity>
+
+          <View style={styles.overlayHeaderCenter}>
+            <Text style={styles.overlayTitle} allowFontScaling={false}>
+              Medições
             </Text>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${(measurementPoints.length / 5) * 100}%` },
-                ]}
-              />
-            </View>
+            <Text style={styles.overlaySubtitle} allowFontScaling={false}>
+              {stepInfo[currentStep].title}
+            </Text>
           </View>
-        </SafeAreaView>
-      </LinearGradient>
 
-      {/* Instructions */}
-      <View style={styles.instructionContainer}>
-        <Text style={styles.instruction}>
-          {stepInfo[currentStep].instruction}
-        </Text>
-        <Text style={styles.subInstruction}>
-          Use zoom (até 6x) e pan para posicionar com máxima precisão
-        </Text>
-      </View>
-
-      {/* Image Container */}
-      <View style={styles.imageContainer}>
-        <ImageViewer
-          ref={imageViewerRef}
-          imageUri={imageData.uri}
-          measurementPoints={measurementPoints}
-          onAddPoint={handleAddPoint}
-          isPointAddingMode={currentStep !== "complete"}
-        />
-      </View>
-
-      {/* Bottom Controls */}
-      <View style={styles.bottomContainer}>
-        {/* Progress Grid */}
-        <View style={styles.progressContainer}>
-          <Text style={styles.pointsTitle}>Progresso das Medições</Text>
-          <View style={styles.progressGrid}>
-            {Object.entries(stepInfo)
-              .filter(([key]) => key !== "complete")
-              .map(([key, info]) => {
-                const hasPoint = measurementPoints.some(
-                  (p) => p.type === info.type
-                );
-                const isCurrent = key === currentStep;
-
-                return (
-                  <View key={key} style={styles.progressItem}>
-                    <View
-                      style={[
-                        styles.progressIcon,
-                        { backgroundColor: getPointColor(info.type) },
-                      ]}
-                    />
-                    <Text style={styles.progressLabel}>{info.title}</Text>
-                    {hasPoint && (
-                      <Feather name="check" size={16} color={colors.success} />
-                    )}
-                  </View>
-                );
-              })}
+          <View style={styles.overlayHeaderButtons}>
+            <TouchableOpacity
+              style={styles.overlayResetButton}
+              onPress={handleReset}
+            >
+              <Feather name="refresh-cw" size={20} color={colors.white} />
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Buttons */}
-        <View style={styles.buttonsContainer}>
+        {/* Instruções sobrepostas no topo */}
+        {currentStep !== "complete" && (
+          <View style={styles.overlayInstructions}>
+            <Text
+              style={styles.overlayInstructionText}
+              allowFontScaling={false}
+            >
+              {stepInfo[currentStep].instruction}
+            </Text>
+          </View>
+        )}
+
+        {/* Controle de Marcadores sobreposto */}
+        {showMarkerControl && (
+          <View style={styles.overlayMarkerControl}>
+            <MarkerControl
+              selectedMarker={selectedMarker}
+              onMarkerMove={handleMarkerMove}
+              onMarkerSelect={setSelectedMarker}
+              measurementPoints={measurementPoints}
+              visible={showMarkerControl}
+            />
+          </View>
+        )}
+
+        {/* Botões de ação sobrepostos na parte inferior */}
+        <View style={styles.overlayBottomControls}>
+          {measurementPoints.length > 0 && (
+            <TouchableOpacity
+              style={[
+                styles.overlayButton,
+                {
+                  backgroundColor: showMarkerControl
+                    ? colors.primary
+                    : colors.surface + "E6",
+                },
+              ]}
+              onPress={() => setShowMarkerControl(!showMarkerControl)}
+            >
+              <Feather
+                name={showMarkerControl ? "eye-off" : "target"}
+                size={16}
+                color={showMarkerControl ? colors.white : colors.text}
+              />
+              <Text
+                style={[styles.overlayButtonText, { color: colors.text }]}
+                allowFontScaling={false}
+              >
+                {showMarkerControl ? "Ocultar" : "Precisão"}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {currentStep !== "leftPupil" && (
             <TouchableOpacity
-              style={styles.previousButton}
+              style={[
+                styles.overlayButton,
+                { backgroundColor: colors.surface + "E6" },
+              ]}
               onPress={handlePreviousStep}
             >
-              <Text style={styles.previousButtonText}>Anterior</Text>
+              <Feather name="arrow-left" size={16} color={colors.text} />
+              <Text
+                style={[styles.overlayButtonText, { color: colors.text }]}
+                allowFontScaling={false}
+              >
+                Anterior
+              </Text>
             </TouchableOpacity>
           )}
 
           {currentStep === "leftPupil" && measurementPoints.length === 0 && (
-            <TouchableOpacity style={styles.previousButton} onPress={onBack}>
-              <Text style={styles.previousButtonText}>Voltar para Cartão</Text>
+            <TouchableOpacity
+              style={[
+                styles.overlayButton,
+                { backgroundColor: colors.surface + "E6" },
+              ]}
+              onPress={onBack}
+            >
+              <Feather name="arrow-left" size={16} color={colors.text} />
+              <Text
+                style={[styles.overlayButtonText, { color: colors.text }]}
+                allowFontScaling={false}
+              >
+                Voltar
+              </Text>
             </TouchableOpacity>
           )}
 
           {currentStep === "complete" && (
             <TouchableOpacity
               style={[
-                styles.calculateButton,
-                (!validateMeasurementPoints(measurementPoints) ||
-                  isCompleting) &&
-                  styles.disabledButton,
+                styles.overlayCompleteButton,
+                {
+                  backgroundColor:
+                    validateMeasurementPoints(measurementPoints) &&
+                    !isCompleting
+                      ? colors.primary
+                      : colors.border + "E6",
+                },
               ]}
               onPress={handleCalculateMeasurements}
               disabled={
@@ -596,18 +530,44 @@ const MeasurementScreen: React.FC<MeasurementScreenProps> = ({
               {isCompleting ? (
                 <ActivityIndicator size="small" color={colors.white} />
               ) : (
-                <Text
-                  style={[
-                    styles.calculateButtonText,
-                    !validateMeasurementPoints(measurementPoints) &&
-                      styles.disabledButtonText,
-                  ]}
-                >
-                  Calcular Medições
-                </Text>
+                <>
+                  <Feather name="check" size={16} color={colors.white} />
+                  <Text
+                    style={[styles.overlayButtonText, { color: colors.white }]}
+                    allowFontScaling={false}
+                  >
+                    Calcular
+                  </Text>
+                </>
               )}
             </TouchableOpacity>
           )}
+        </View>
+
+        {/* Indicador de progresso sobreposto */}
+        <View style={styles.overlayProgress}>
+          <View style={styles.progressDots}>
+            {stepOrder.slice(0, -1).map((step, index) => {
+              const isCompleted = stepOrder.indexOf(currentStep) > index;
+              const isCurrent = stepOrder.indexOf(currentStep) === index;
+
+              return (
+                <View
+                  key={step}
+                  style={[
+                    styles.progressDot,
+                    {
+                      backgroundColor: isCompleted
+                        ? colors.success
+                        : isCurrent
+                        ? colors.primary
+                        : colors.surface + "80",
+                    },
+                  ]}
+                />
+              );
+            })}
+          </View>
         </View>
       </View>
     </View>

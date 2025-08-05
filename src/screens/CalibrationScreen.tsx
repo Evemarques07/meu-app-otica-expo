@@ -1,5 +1,5 @@
 // calibração
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,31 @@ import {
   SafeAreaView,
   Alert,
   StatusBar,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Feather } from '@expo/vector-icons';
-import ImageViewer from '../components/ImageViewer';
-import { ImageData, MeasurementPoint, MeasurementType, Point, CalibrationData } from '../types';
-import { calculatePixelsPerMM, validateCalibrationPoints } from '../utils/measurements';
-import { useThemedColors } from '../hooks/useThemedColors';
-import { spacing, borderRadius, typography, shadows, containers } from '../styles/layout';
-
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
+import ImageViewer, { ImageViewerRef } from "../components/ImageViewer";
+import MarkerControl from "../components/MarkerControl";
+import {
+  ImageData,
+  MeasurementPoint,
+  MeasurementType,
+  Point,
+  CalibrationData,
+} from "../types";
+import {
+  calculatePixelsPerMM,
+  validateCalibrationPoints,
+} from "../utils/measurements";
+import { useThemedColors } from "../hooks/useThemedColors";
+import {
+  spacing,
+  borderRadius,
+  typography,
+  shadows,
+  containers,
+} from "../styles/layout";
+//continuar
 interface CalibrationScreenProps {
   imageData: ImageData;
   onCalibrationComplete: (
@@ -32,14 +48,25 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   onBack,
 }) => {
   const colors = useThemedColors();
-  const [measurementPoints, setMeasurementPoints] = useState<MeasurementPoint[]>([]);
-  const [currentStep, setCurrentStep] = useState<'left' | 'right'>('left');
-  const [lastTapFeedback, setLastTapFeedback] = useState<string>('');
+  const [measurementPoints, setMeasurementPoints] = useState<
+    MeasurementPoint[]
+  >([]);
+  const [currentStep, setCurrentStep] = useState<"left" | "right">("left");
+  const [lastTapFeedback, setLastTapFeedback] = useState<string>("");
+  const [selectedMarker, setSelectedMarker] = useState<MeasurementPoint | null>(
+    null
+  );
+  const [showMarkerControl, setShowMarkerControl] = useState(false);
+  const imageViewerRef = useRef<ImageViewerRef>(null);
 
   const handleAddPoint = (point: Point) => {
-    const pointType = currentStep === 'left' ? MeasurementType.CARD_LEFT : MeasurementType.CARD_RIGHT;
-    const label = currentStep === 'left' ? 'Extremidade Esquerda' : 'Extremidade Direita';
-    
+    const pointType =
+      currentStep === "left"
+        ? MeasurementType.CARD_LEFT
+        : MeasurementType.CARD_RIGHT;
+    const label =
+      currentStep === "left" ? "Extremidade Esquerda" : "Extremidade Direita";
+
     const newPoint: MeasurementPoint = {
       id: `card_${currentStep}_${Date.now()}`,
       x: point.x,
@@ -48,32 +75,52 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
       label,
     };
 
-    const filteredPoints = measurementPoints.filter(p => p.type !== pointType);
+    const filteredPoints = measurementPoints.filter(
+      (p) => p.type !== pointType
+    );
     const updatedPoints = [...filteredPoints, newPoint];
-    
+
     setMeasurementPoints(updatedPoints);
     setLastTapFeedback(`✅ ${label} marcada com sucesso!`);
-    
-    setTimeout(() => setLastTapFeedback(''), 2000);
 
-    if (currentStep === 'left') {
-      setCurrentStep('right');
+    setTimeout(() => setLastTapFeedback(""), 2000);
+
+    if (currentStep === "left") {
+      setCurrentStep("right");
+    }
+  };
+
+  const handleUpdatePoint = (pointId: string, newPoint: Point) => {
+    setMeasurementPoints((prev) =>
+      prev.map((p) =>
+        p.id === pointId ? { ...p, x: newPoint.x, y: newPoint.y } : p
+      )
+    );
+  };
+
+  const handleMarkerMove = (
+    marker: MeasurementPoint,
+    deltaX: number,
+    deltaY: number
+  ) => {
+    if (imageViewerRef.current) {
+      imageViewerRef.current.moveMarker(marker.id, deltaX, deltaY);
     }
   };
 
   const handleReset = () => {
     Alert.alert(
-      'Recomeçar Calibração',
-      'Tem certeza de que deseja apagar todos os pontos e recomeçar?',
+      "Recomeçar Calibração",
+      "Tem certeza de que deseja apagar todos os pontos e recomeçar?",
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: "Cancelar", style: "cancel" },
         {
-          text: 'Recomeçar',
-          style: 'destructive',
+          text: "Recomeçar",
+          style: "destructive",
           onPress: () => {
             setMeasurementPoints([]);
-            setCurrentStep('left');
-            setLastTapFeedback('');
+            setCurrentStep("left");
+            setLastTapFeedback("");
           },
         },
       ]
@@ -82,22 +129,32 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
 
   const handleContinue = () => {
     if (!validateCalibrationPoints(measurementPoints)) {
-      Alert.alert('Erro', 'É necessário marcar ambas as extremidades do cartão.');
+      Alert.alert(
+        "Erro",
+        "É necessário marcar ambas as extremidades do cartão."
+      );
       return;
     }
 
-    const cardLeftPoint = measurementPoints.find(p => p.type === MeasurementType.CARD_LEFT);
-    const cardRightPoint = measurementPoints.find(p => p.type === MeasurementType.CARD_RIGHT);
-    
+    const cardLeftPoint = measurementPoints.find(
+      (p) => p.type === MeasurementType.CARD_LEFT
+    );
+    const cardRightPoint = measurementPoints.find(
+      (p) => p.type === MeasurementType.CARD_RIGHT
+    );
+
     if (!cardLeftPoint || !cardRightPoint) {
-      Alert.alert('Erro', 'Pontos do cartão não encontrados.');
+      Alert.alert("Erro", "Pontos do cartão não encontrados.");
       return;
     }
 
     const pixelsPerMM = calculatePixelsPerMM(cardLeftPoint, cardRightPoint);
-    
+
     if (pixelsPerMM <= 0) {
-      Alert.alert('Erro', 'Não foi possível calcular a escala. Verifique os pontos marcados.');
+      Alert.alert(
+        "Erro",
+        "Não foi possível calcular a escala. Verifique os pontos marcados."
+      );
       return;
     }
 
@@ -111,274 +168,363 @@ const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   };
 
   const getStepInfo = () => {
-    if (currentStep === 'left') {
-      return 'Passo 1/2 • Marque a extremidade esquerda';
+    if (currentStep === "left") {
+      return "Passo 1/2 • Marque a extremidade esquerda";
     }
-    return 'Passo 2/2 • Marque a extremidade direita';
+    return "Passo 2/2 • Marque a extremidade direita";
   };
 
   const getInstructionText = () => {
-    if (currentStep === 'left') {
-      return 'Toque na extremidade esquerda do cartão';
+    if (currentStep === "left") {
+      return "Toque na extremidade esquerda do cartão";
     }
-    return 'Toque na extremidade direita do cartão';
+    return "Toque na extremidade direita do cartão";
   };
 
   const getInstructionDetails = () => {
-    if (currentStep === 'left') {
-      return 'Marque o ponto mais à esquerda da borda do cartão de crédito/débito.';
+    if (currentStep === "left") {
+      return "Marque a extremidade esquerda (quando você olha diretamente para o cartão).";
     }
-    return 'Marque o ponto mais à direita da borda do cartão de crédito/débito.';
+    return "Marque a extremidade direita (quando você olha diretamente para o cartão).";
   };
 
   // Estilos dinâmicos baseados no tema
   const styles = StyleSheet.create({
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    backButton: {
-      padding: spacing.sm,
-    },
-    backButtonText: {
-      ...typography.body,
-      color: colors.primary,
-    },
-    title: {
-      ...typography.title,
-      color: colors.text,
-    },
-    headerTitle: {
-      ...typography.title,
-      color: colors.text,
-    },
-    placeholder: {
-      width: 40,
-    },
-    instructionContainer: {
-      backgroundColor: colors.surface,
-      marginHorizontal: spacing.lg,
-      marginTop: spacing.lg,
-      padding: spacing.lg,
-      borderRadius: borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      ...shadows.small,
-    },
-    stepInfo: {
-      ...typography.subtitle,
-      color: colors.primary,
-      marginBottom: spacing.sm,
-    },
-    instruction: {
-      ...typography.body,
-      marginBottom: spacing.sm,
-      color: colors.text,
-    },
-    subInstruction: {
-      ...typography.bodySecondary,
-      color: colors.textMuted,
-      marginBottom: spacing.sm,
-    },
-    feedbackText: {
-      ...typography.bodySecondary,
-      color: colors.success,
-      fontWeight: 'bold',
-    },
-    statusCard: {
-      backgroundColor: colors.surface,
-      marginHorizontal: spacing.lg,
-      marginTop: spacing.lg,
-      padding: spacing.lg,
-      borderRadius: borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      ...shadows.small,
-    },
-    statusTitle: {
-      ...typography.subtitle,
-      color: colors.primary,
-      marginBottom: spacing.sm,
-    },
-    statusText: {
-      ...typography.body,
-      marginBottom: spacing.sm,
-      color: colors.text,
-    },
-    validationText: {
-      ...typography.bodySecondary,
-      color: colors.success,
-      fontWeight: 'bold',
-    },
-    imageContainer: {
+    container: {
       flex: 1,
-      marginHorizontal: spacing.lg,
-      marginVertical: spacing.lg,
-      borderRadius: borderRadius.md,
-      overflow: 'hidden',
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-      ...shadows.medium,
+      backgroundColor: colors.background,
     },
-    controlsContainer: {
-      backgroundColor: colors.surface,
+    fullscreenImageContainer: {
+      flex: 1,
+      width: "100%",
+      height: "100%",
+    },
+    overlayHeader: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xl + 20, // StatusBar height + padding
+      paddingBottom: spacing.md,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      zIndex: 10,
+    },
+    overlayBackButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    overlayHeaderCenter: {
+      flex: 1,
+      alignItems: "center",
+      marginHorizontal: spacing.md,
+    },
+    overlayTitle: {
+      ...typography.title,
+      color: colors.white,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    overlaySubtitle: {
+      ...typography.bodySecondary,
+      color: colors.white,
+      fontSize: 14,
+      marginTop: 2,
+    },
+    overlayResetButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    overlayInstructions: {
+      position: "absolute",
+      top: 120,
+      left: spacing.lg,
+      right: spacing.lg,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      padding: spacing.md,
+      borderRadius: 8,
+      zIndex: 10,
+    },
+    overlayInstructionText: {
+      ...typography.body,
+      color: colors.white,
+      textAlign: "center",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    overlayInstructionSubtext: {
+      ...typography.bodySecondary,
+      color: colors.white,
+      textAlign: "center",
+      fontSize: 14,
+      marginTop: spacing.xs,
+    },
+    overlayFeedbackText: {
+      ...typography.bodySecondary,
+      color: colors.success,
+      textAlign: "center",
+      fontSize: 14,
+      fontWeight: "bold",
+      marginTop: spacing.sm,
+    },
+    overlayMarkerControl: {
+      position: "absolute",
+      bottom: 120,
+      left: spacing.sm,
+      right: spacing.sm,
+      zIndex: 10,
+    },
+    overlayBottomControls: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.lg,
-      borderTopWidth: 1,
-      borderColor: colors.border,
+      paddingBottom: spacing.xl,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      zIndex: 10,
     },
-    pointsInfo: {
-      marginBottom: spacing.lg,
+    overlayButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: 20,
+      minWidth: 80,
     },
-    pointsText: {
-      ...typography.body,
-      marginBottom: spacing.sm,
-      color: colors.text,
-    },
-    pointItem: {
-      ...typography.bodySecondary,
-      color: colors.textMuted,
-      marginBottom: spacing.xs,
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      gap: spacing.md,
-    },
-    resetButton: {
-      flex: 1,
-      backgroundColor: colors.surface,
-      paddingVertical: spacing.md,
-      borderRadius: borderRadius.md,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border,
-      ...shadows.small,
-    },
-    resetButtonText: {
+    overlayButtonText: {
       ...typography.button,
-      color: colors.text,
+      fontSize: 12,
+      marginLeft: spacing.xs,
     },
-    controlsText: {
-      ...typography.body,
-      textAlign: 'center',
-      marginBottom: spacing.lg,
-      color: colors.text,
-    },
-    continueButton: {
-      flex: 1,
-      backgroundColor: colors.primary,
+    overlayCompleteButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
-      borderRadius: borderRadius.md,
-      alignItems: 'center',
-      ...shadows.small,
+      borderRadius: 25,
+      minWidth: 120,
     },
-    continueButtonText: {
-      ...typography.button,
-      color: colors.text,
+    overlayProgress: {
+      position: "absolute",
+      bottom: 80,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 10,
     },
-    disabledButton: {
-      backgroundColor: colors.border,
-      borderColor: colors.border,
+    progressDots: {
+      flexDirection: "row",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: 20,
     },
-    disabledButtonText: {
-      color: colors.textMuted,
+    progressDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginHorizontal: 4,
     },
   });
 
   return (
-    <LinearGradient
-      colors={[colors.background, colors.surface]}
-      style={containers.screen}
-    >
-      <StatusBar barStyle="light-content" />
-      <SafeAreaView style={containers.screen}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Feather name="arrow-left" size={20} color={colors.text} />
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Calibração</Text>
-          <View style={styles.placeholder} />
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent={true}
+        hidden={false}
+      />
+
+      {/* Imagem em tela cheia */}
+      <View style={styles.fullscreenImageContainer}>
+        <ImageViewer
+          ref={imageViewerRef}
+          imageUri={imageData.uri}
+          measurementPoints={measurementPoints}
+          onAddPoint={handleAddPoint}
+          onUpdatePoint={handleUpdatePoint}
+          isPointAddingMode={true}
+        />
+      </View>
+
+      {/* Header sobreposto */}
+      <View style={styles.overlayHeader}>
+        <TouchableOpacity style={styles.overlayBackButton} onPress={onBack}>
+          <Feather name="arrow-left" size={20} color={colors.white} />
+        </TouchableOpacity>
+
+        <View style={styles.overlayHeaderCenter}>
+          <Text style={styles.overlayTitle} allowFontScaling={false}>
+            Calibração
+          </Text>
+          <Text style={styles.overlaySubtitle} allowFontScaling={false}>
+            {getStepInfo()}
+          </Text>
         </View>
 
-        <View style={styles.instructionContainer}>
-          <Text style={styles.stepInfo}>{getStepInfo()}</Text>
-          <Text style={styles.instruction}>{getInstructionText()}</Text>
-          <Text style={styles.subInstruction}>
-            {getInstructionDetails()}
-          </Text>
-          <Text style={styles.subInstruction}>
-            Use zoom (até 6x) e pan para máxima precisão
-          </Text>
-          {lastTapFeedback ? (
-            <Text style={styles.feedbackText}>{lastTapFeedback}</Text>
-          ) : null}
-        </View>
+        <TouchableOpacity
+          style={styles.overlayResetButton}
+          onPress={handleReset}
+        >
+          <Feather name="refresh-cw" size={20} color={colors.white} />
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.imageContainer}>
-          <ImageViewer
-            imageUri={imageData.uri}
+      {/* Instruções sobrepostas no topo */}
+      <View style={styles.overlayInstructions}>
+        <Text style={styles.overlayInstructionText} allowFontScaling={false}>
+          {getInstructionText()}
+        </Text>
+        <Text style={styles.overlayInstructionSubtext} allowFontScaling={false}>
+          {getInstructionDetails()}
+        </Text>
+        {lastTapFeedback ? (
+          <Text style={styles.overlayFeedbackText} allowFontScaling={false}>
+            {lastTapFeedback}
+          </Text>
+        ) : null}
+      </View>
+
+      {/* Controle de Marcadores sobreposto */}
+      {showMarkerControl && (
+        <View style={styles.overlayMarkerControl}>
+          <MarkerControl
+            selectedMarker={selectedMarker}
+            onMarkerMove={handleMarkerMove}
+            onMarkerSelect={setSelectedMarker}
             measurementPoints={measurementPoints}
-            onAddPoint={handleAddPoint}
-            isPointAddingMode={true}
+            visible={showMarkerControl}
           />
         </View>
+      )}
 
-        <View style={styles.controlsContainer}>
-          <View style={styles.pointsInfo}>
-            <Text style={styles.pointsText}>
-              Pontos marcados: {measurementPoints.length}/2
-            </Text>
-            {measurementPoints.map((point, index) => {
-              const isLeft = point.type === MeasurementType.CARD_LEFT;
-              const emoji = isLeft ? '🔴' : '🔵';
-              return (
-                <Text key={point.id} style={styles.pointItem}>
-                  {emoji} {point.label}
-                </Text>
-              );
-            })}
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.resetButton, measurementPoints.length === 0 && styles.disabledButton]} 
-              onPress={handleReset}
-              disabled={measurementPoints.length === 0}
-            >
-              <Text style={[
-                styles.resetButtonText,
-                measurementPoints.length === 0 && styles.disabledButtonText
-              ]}>
-                Recomeçar
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
+      {/* Botões de ação sobrepostos na parte inferior */}
+      <View style={styles.overlayBottomControls}>
+        {/* Botão de controle preciso */}
+        {measurementPoints.length > 0 && (
+          <TouchableOpacity
+            style={[
+              styles.overlayButton,
+              {
+                backgroundColor: showMarkerControl
+                  ? colors.primary
+                  : colors.surface + "E6",
+              },
+            ]}
+            onPress={() => setShowMarkerControl(!showMarkerControl)}
+          >
+            <Feather
+              name={showMarkerControl ? "eye-off" : "target"}
+              size={16}
+              color={showMarkerControl ? colors.white : colors.text}
+            />
+            <Text
               style={[
-                styles.continueButton,
-                !validateCalibrationPoints(measurementPoints) && styles.disabledButton
-              ]} 
-              onPress={handleContinue}
-              disabled={!validateCalibrationPoints(measurementPoints)}
+                styles.overlayButtonText,
+                { color: showMarkerControl ? colors.white : colors.text },
+              ]}
+              allowFontScaling={false}
             >
-              <Text style={[
-                styles.continueButtonText,
-                !validateCalibrationPoints(measurementPoints) && styles.disabledButtonText
-              ]}>
-                Continuar
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {showMarkerControl ? "Ocultar" : "Precisão"}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[
+            styles.overlayButton,
+            {
+              backgroundColor:
+                measurementPoints.length === 0
+                  ? colors.border + "E6"
+                  : colors.surface + "E6",
+            },
+          ]}
+          onPress={handleReset}
+          disabled={measurementPoints.length === 0}
+        >
+          <Feather name="refresh-cw" size={16} color={colors.text} />
+          <Text
+            style={[styles.overlayButtonText, { color: colors.text }]}
+            allowFontScaling={false}
+          >
+            Recomeçar
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.overlayCompleteButton,
+            {
+              backgroundColor: validateCalibrationPoints(measurementPoints)
+                ? colors.primary
+                : colors.border + "E6",
+            },
+          ]}
+          onPress={handleContinue}
+          disabled={!validateCalibrationPoints(measurementPoints)}
+        >
+          <Feather name="arrow-right" size={16} color={colors.white} />
+          <Text
+            style={[styles.overlayButtonText, { color: colors.white }]}
+            allowFontScaling={false}
+          >
+            Continuar
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Indicador de progresso sobreposto */}
+      <View style={styles.overlayProgress}>
+        <View style={styles.progressDots}>
+          <View
+            style={[
+              styles.progressDot,
+              {
+                backgroundColor: measurementPoints.some(
+                  (p) => p.type === MeasurementType.CARD_LEFT
+                )
+                  ? colors.success
+                  : currentStep === "left"
+                  ? colors.primary
+                  : colors.surface + "80",
+              },
+            ]}
+          />
+          <View
+            style={[
+              styles.progressDot,
+              {
+                backgroundColor: measurementPoints.some(
+                  (p) => p.type === MeasurementType.CARD_RIGHT
+                )
+                  ? colors.success
+                  : currentStep === "right"
+                  ? colors.primary
+                  : colors.surface + "80",
+              },
+            ]}
+          />
         </View>
-      </SafeAreaView>
-    </LinearGradient>
+      </View>
+    </View>
   );
 };
 

@@ -100,15 +100,36 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
     description: string,
     icon: string
   ) => (
-    <View style={styles.measurementCard}>
+    <View style={[styles.measurementCard, { backgroundColor: colors.surface }]}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardIcon}>{icon}</Text>
-        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardIcon} allowFontScaling={false}>
+          {icon}
+        </Text>
+        <Text
+          style={[styles.cardTitle, { color: colors.text }]}
+          allowFontScaling={false}
+        >
+          {title}
+        </Text>
       </View>
-      <Text style={styles.cardValue}>
-        {value} <Text style={styles.cardUnit}>{unit}</Text>
+      <Text
+        style={[styles.cardValue, { color: colors.primary }]}
+        allowFontScaling={false}
+      >
+        {value}{" "}
+        <Text
+          style={[styles.cardUnit, { color: colors.textSecondary }]}
+          allowFontScaling={false}
+        >
+          {unit}
+        </Text>
       </Text>
-      <Text style={styles.cardDescription}>{description}</Text>
+      <Text
+        style={[styles.cardDescription, { color: colors.textSecondary }]}
+        allowFontScaling={false}
+      >
+        {description}
+      </Text>
     </View>
   );
 
@@ -125,7 +146,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Feather name="arrow-left" size={24} color={colors.white} />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.white }]}>
+          <Text
+            style={[styles.title, { color: colors.white }]}
+            allowFontScaling={false}
+          >
             Resultados
           </Text>
           <View style={styles.shareButtons}>
@@ -146,6 +170,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
                   />
                   <Text
                     style={[styles.shareButtonText, { color: colors.primary }]}
+                    allowFontScaling={false}
                   >
                     Texto
                   </Text>
@@ -158,11 +183,19 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
               disabled={isGeneratingPDF}
             >
               {isGeneratingPDF ? (
-                <ActivityIndicator size="small" color={colors.white} />
+                <ActivityIndicator size="small" color={colors.surface} />
               ) : (
                 <>
-                  <Feather name="file-text" size={16} color={colors.white} />
-                  <Text style={styles.pdfShareButtonText}>PDF</Text>
+                  <Feather name="file-text" size={16} color={colors.surface} />
+                  <Text
+                    style={[
+                      styles.pdfShareButtonText,
+                      { color: colors.surface },
+                    ]}
+                    allowFontScaling={false}
+                  >
+                    PDF
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -171,18 +204,39 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.successBanner}>
+        <View
+          style={[
+            styles.successBanner,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.success,
+            },
+          ]}
+        >
           <View style={styles.successIconWrapper}>
             <Feather name="check-circle" size={64} color={colors.success} />
           </View>
-          <Text style={styles.successTitle}>Medições Concluídas!</Text>
-          <Text style={styles.successSubtitle}>
+          <Text
+            style={[styles.successTitle, { color: colors.success }]}
+            allowFontScaling={false}
+          >
+            Medições Concluídas!
+          </Text>
+          <Text
+            style={[styles.successSubtitle, { color: colors.textSecondary }]}
+            allowFontScaling={false}
+          >
             Todas as medições foram calculadas com sucesso
           </Text>
         </View>
 
         <View style={styles.measurementsContainer}>
-          <Text style={styles.sectionTitle}>Medições Principais</Text>
+          <Text
+            style={[styles.sectionTitle, { color: colors.text }]}
+            allowFontScaling={false}
+          >
+            Medições Principais
+          </Text>
 
           {getMeasurementCard(
             "DP - Distância Pupilar Total",
@@ -193,7 +247,10 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           )}
 
           <View style={styles.dpnContainer}>
-            <Text style={styles.subsectionTitle}>
+            <Text
+              style={[styles.subsectionTitle, { color: colors.text }]}
+              allowFontScaling={false}
+            >
               DPN - Distância Pupilar Nasal
             </Text>
             <View style={styles.dpnRow}>
@@ -215,7 +272,12 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           </View>
 
           <View style={styles.heightContainer}>
-            <Text style={styles.subsectionTitle}>Altura Óptica</Text>
+            <Text
+              style={[styles.subsectionTitle, { color: colors.text }]}
+              allowFontScaling={false}
+            >
+              Altura Óptica
+            </Text>
             <View style={styles.heightRow}>
               {getMeasurementCard(
                 "Altura Esquerda",
@@ -235,37 +297,85 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           </View>
         </View>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoTitle}>ℹ️ Informações Importantes</Text>
+        <View
+          style={[
+            styles.infoContainer,
+            {
+              backgroundColor: colors.surface,
+              borderLeftColor: colors.warning,
+            },
+          ]}
+        >
+          <Text
+            style={[styles.infoTitle, { color: colors.warning }]}
+            allowFontScaling={false}
+          >
+            ℹ️ Informações Importantes
+          </Text>
           <View style={styles.infoItem}>
-            <Text style={styles.infoBullet}>•</Text>
-            <Text style={styles.infoText}>
+            <Text
+              style={[styles.infoBullet, { color: colors.warning }]}
+              allowFontScaling={false}
+            >
+              •
+            </Text>
+            <Text
+              style={[styles.infoText, { color: colors.text }]}
+              allowFontScaling={false}
+            >
               Estas medições são essenciais para garantir o correto
               posicionamento das lentes
             </Text>
           </View>
           <View style={styles.infoItem}>
-            <Text style={styles.infoBullet}>•</Text>
-            <Text style={styles.infoText}>
+            <Text
+              style={[styles.infoBullet, { color: colors.warning }]}
+              allowFontScaling={false}
+            >
+              •
+            </Text>
+            <Text
+              style={[styles.infoText, { color: colors.text }]}
+              allowFontScaling={false}
+            >
               A DP garante que as lentes fiquem centralizadas com suas pupilas
             </Text>
           </View>
           <View style={styles.infoItem}>
-            <Text style={styles.infoBullet}>•</Text>
-            <Text style={styles.infoText}>
+            <Text
+              style={[styles.infoBullet, { color: colors.warning }]}
+              allowFontScaling={false}
+            >
+              •
+            </Text>
+            <Text
+              style={[styles.infoText, { color: colors.text }]}
+              allowFontScaling={false}
+            >
               A altura óptica assegura o conforto visual adequado
             </Text>
           </View>
           <View style={styles.infoItem}>
-            <Text style={styles.infoBullet}>•</Text>
-            <Text style={styles.infoText}>
+            <Text
+              style={[styles.infoBullet, { color: colors.warning }]}
+              allowFontScaling={false}
+            >
+              •
+            </Text>
+            <Text
+              style={[styles.infoText, { color: colors.text }]}
+              allowFontScaling={false}
+            >
               Leve estas medições ao seu oftalmologista ou ótica de confiança
             </Text>
           </View>
         </View>
 
         <View style={styles.timestampContainer}>
-          <Text style={styles.timestamp}>
+          <Text
+            style={[styles.timestamp, { color: colors.textSecondary }]}
+            allowFontScaling={false}
+          >
             Medição realizada em: {new Date().toLocaleString("pt-BR")}
           </Text>
         </View>
@@ -279,8 +389,13 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
           ]}
           onPress={onStartNew}
         >
-          <Feather name="camera" size={20} color={colors.white} />
-          <Text style={styles.newMeasurementButtonText}>Nova Medição</Text>
+          <Feather name="camera" size={20} color={colors.surface} />
+          <Text
+            style={[styles.newMeasurementButtonText, { color: colors.surface }]}
+            allowFontScaling={false}
+          >
+            Nova Medição
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -292,19 +407,35 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
         onRequestClose={() => setShowNameModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
+          <View
+            style={[styles.modalContent, { backgroundColor: colors.surface }]}
+          >
+            <Text
+              style={[styles.modalTitle, { color: colors.text }]}
+              allowFontScaling={false}
+            >
               {shareType === "pdf"
                 ? "📄 Compartilhar PDF"
                 : "📱 Compartilhar Texto"}
             </Text>
-            <Text style={styles.modalSubtitle}>
+            <Text
+              style={[styles.modalSubtitle, { color: colors.textSecondary }]}
+              allowFontScaling={false}
+            >
               Insira o nome do paciente (opcional)
             </Text>
 
             <TextInput
-              style={styles.nameInput}
+              style={[
+                styles.nameInput,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Nome do paciente"
+              placeholderTextColor={colors.textSecondary}
               value={patientName}
               onChangeText={setPatientName}
               autoFocus={true}
@@ -313,17 +444,34 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.modalCancelButton}
+                style={[
+                  styles.modalCancelButton,
+                  { borderColor: colors.border },
+                ]}
                 onPress={() => setShowNameModal(false)}
               >
-                <Text style={styles.modalCancelText}>Cancelar</Text>
+                <Text
+                  style={[
+                    styles.modalCancelText,
+                    { color: colors.textSecondary },
+                  ]}
+                  allowFontScaling={false}
+                >
+                  Cancelar
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.modalConfirmButton}
+                style={[
+                  styles.modalConfirmButton,
+                  { backgroundColor: colors.primary },
+                ]}
                 onPress={handleConfirmShare}
               >
-                <Text style={styles.modalConfirmText}>
+                <Text
+                  style={[styles.modalConfirmText, { color: colors.white }]}
+                  allowFontScaling={false}
+                >
                   {shareType === "pdf" ? "Gerar PDF" : "Compartilhar"}
                 </Text>
               </TouchableOpacity>
@@ -408,7 +556,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   pdfShareButtonText: {
-    color: "#fff",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -417,13 +564,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   successBanner: {
-    backgroundColor: "#E8F5E8",
     padding: 20,
     borderRadius: 12,
     alignItems: "center",
     marginVertical: 20,
     borderWidth: 1,
-    borderColor: "#4CAF50",
   },
   logoSmall: {
     width: 60,
@@ -438,12 +583,10 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#2E7D32",
     marginBottom: 5,
   },
   successSubtitle: {
     fontSize: 14,
-    color: "#4CAF50",
     textAlign: "center",
   },
   measurementsContainer: {
@@ -452,18 +595,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
     marginBottom: 15,
   },
   subsectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#555",
     marginBottom: 10,
     marginTop: 20,
   },
   measurementCard: {
-    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 10,
     marginBottom: 12,
@@ -489,22 +629,18 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
     flex: 1,
   },
   cardValue: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#007AFF",
     marginBottom: 4,
   },
   cardUnit: {
     fontSize: 16,
-    color: "#666",
   },
   cardDescription: {
     fontSize: 12,
-    color: "#666",
   },
   dpnContainer: {
     marginTop: 20,
@@ -523,17 +659,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoContainer: {
-    backgroundColor: "#FFF3E0",
     padding: 16,
     borderRadius: 10,
     marginBottom: 20,
     borderLeftWidth: 4,
-    borderLeftColor: "#FF9800",
   },
   infoTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#E65100",
     marginBottom: 12,
   },
   infoItem: {
@@ -543,13 +676,11 @@ const styles = StyleSheet.create({
   },
   infoBullet: {
     fontSize: 14,
-    color: "#FF9800",
     marginRight: 8,
     marginTop: 2,
   },
   infoText: {
     fontSize: 14,
-    color: "#BF360C",
     flex: 1,
     lineHeight: 18,
   },
@@ -559,7 +690,6 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: "#999",
     fontStyle: "italic",
   },
   buttonContainer: {
@@ -568,7 +698,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   newMeasurementButton: {
-    backgroundColor: "#007AFF",
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: 12,
@@ -586,7 +715,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   newMeasurementButtonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -598,7 +726,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#fff",
     margin: 20,
     padding: 25,
     borderRadius: 15,
@@ -616,24 +743,20 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#333",
     textAlign: "center",
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: "#666",
     textAlign: "center",
     marginBottom: 20,
   },
   nameInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     marginBottom: 20,
-    backgroundColor: "#f9f9f9",
   },
   modalButtons: {
     flexDirection: "row",
@@ -645,24 +768,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ccc",
     alignItems: "center",
   },
   modalCancelText: {
-    color: "#666",
     fontSize: 16,
     fontWeight: "600",
   },
   modalConfirmButton: {
     flex: 1,
-    backgroundColor: "#007AFF",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: "center",
   },
   modalConfirmText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
