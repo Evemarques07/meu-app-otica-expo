@@ -89,10 +89,10 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
   if (!visible) return null;
 
   return (
-    <View style={[styles.container, { backgroundColor: "rgba(0, 0, 0, 0.7)" }]}>
+    <View style={[styles.container, { backgroundColor: "rgba(0, 0, 0, 0.3)" }]}>
       <View style={styles.header}>
         <Text
-          style={[styles.title, { color: colors.white }]}
+          style={[styles.title, { color: "rgba(255, 255, 255, 0.9)" }]}
           allowFontScaling={false}
         >
           Controle de Marcadores
@@ -109,7 +109,7 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
               {
                 backgroundColor:
                   selectedMarker?.id === marker.id
-                    ? "rgba(255, 255, 255, 0)"
+                    ? "rgba(255, 255, 255, 0.1)"
                     : "rgba(255, 255, 255, 0)",
                 borderColor: getMarkerColor(marker.type!),
               },
@@ -128,8 +128,8 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
                 {
                   color:
                     selectedMarker?.id === marker.id
-                      ? colors.white
-                      : colors.white,
+                      ? "rgba(255, 255, 255, 0.95)"
+                      : "rgba(255, 255, 255, 0.8)",
                   fontWeight:
                     selectedMarker?.id === marker.id ? "bold" : "normal",
                 },
@@ -146,7 +146,10 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
       {selectedMarker && (
         <View style={styles.joystickContainer}>
           <Text
-            style={[styles.selectedMarkerText, { color: colors.white }]}
+            style={[
+              styles.selectedMarkerText,
+              { color: "rgba(255, 255, 255, 0.9)" },
+            ]}
             allowFontScaling={false}
           >
             Controlando: {getMarkerLabel(selectedMarker.type!)}
@@ -155,7 +158,7 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
             onMove={handleJoystickMove}
             size={100}
             knobSize={40}
-            backgroundColor={"rgba(255, 255, 255, 0.64)"}
+            backgroundColor={"rgba(255, 255, 255, 0.4)"}
             knobColor={getMarkerColor(selectedMarker.type!)}
             borderColor={"rgba(255, 255, 255, 0)"}
             sensitivity={1.5}
@@ -163,7 +166,7 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
           <Text
             style={[
               styles.instructionText,
-              { color: "rgba(255, 255, 255, 0.05)" },
+              { color: "rgba(255, 255, 255, 0.6)" },
             ]}
             allowFontScaling={false}
           >
@@ -192,7 +195,7 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
           <Text
             style={[
               styles.noSelectionText,
-              { color: "rgba(255, 255, 255, 0.8)" },
+              { color: "rgba(255, 255, 255, 0.7)" },
             ]}
             allowFontScaling={false}
           >
@@ -214,7 +217,7 @@ const MarkerControl: React.FC<MarkerControlProps> = ({
           onPress={() => onMarkerSelect(null)}
         >
           <Text
-            style={[styles.deselectText, { color: colors.white }]}
+            style={[styles.deselectText, { color: "rgba(255, 255, 255, 0.9)" }]}
             allowFontScaling={false}
           >
             Desmarcar

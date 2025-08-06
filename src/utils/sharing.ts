@@ -36,236 +36,325 @@ export const generateReportHTML = (
       <title>Relatório de Medições - Óculos</title>
       <style>
         @page {
-          margin: 15mm;
+          margin: 10mm;
           size: A4;
         }
         body {
           font-family: 'Segoe UI', Arial, sans-serif;
           margin: 0;
           color: #333;
-          line-height: 1.4;
-          font-size: 11px;
+          line-height: 1.3;
+          font-size: 10px;
+        }
+        .container {
+          max-width: 100%;
+          margin: 0 auto;
         }
         .header {
           text-align: center;
-          border-bottom: 2px solid #007AFF;
-          padding-bottom: 8px;
-          margin-bottom: 12px;
+          background: linear-gradient(135deg, #007AFF, #0056CC);
+          color: white;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 15px;
+          box-shadow: 0 2px 8px rgba(0,122,255,0.2);
         }
-        .title {
-          color: #007AFF;
-          font-size: 18px;
+        .header h1 {
+          font-size: 20px;
           font-weight: bold;
+          margin: 0 0 5px 0;
+        }
+        .header .subtitle {
+          font-size: 11px;
+          opacity: 0.9;
           margin: 0;
         }
-        .subtitle {
-          color: #666;
-          font-size: 11px;
-          margin: 4px 0 0 0;
+        .patient-info {
+          background: #f8f9fa;
+          padding: 8px 15px;
+          border-radius: 6px;
+          margin: 8px 0;
+          border-left: 4px solid #007AFF;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
         .patient-name {
-          color: #333;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 600;
-          margin: 6px 0 0 0;
+          color: #333;
         }
-        .date {
-          color: #999;
+        .date-info {
           font-size: 9px;
-          margin: 3px 0 0 0;
+          color: #666;
         }
-        .section {
-          margin-bottom: 12px;
-          background: #f8f9fa;
-          padding: 10px;
-          border-radius: 5px;
-          border-left: 3px solid #007AFF;
+        .main-content {
+          display: grid;
+          grid-template-columns: 1fr 280px;
+          gap: 15px;
+          margin-bottom: 15px;
+        }
+        .measurements-section {
+          background: white;
+          border: 1px solid #e0e6ed;
+          border-radius: 8px;
+          padding: 15px;
         }
         .section-title {
           color: #007AFF;
-          font-size: 13px;
-          font-weight: bold;
-          margin-bottom: 6px;
-        }
-        .measurement-grid {
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 6px;
-          margin-top: 6px;
-        }
-        .measurement-card {
-          background: white;
-          padding: 6px;
-          border-radius: 4px;
-          border: 1px solid #e0e0e0;
-          text-align: center;
-        }
-        .measurement-label {
-          font-weight: bold;
-          color: #333;
-          font-size: 9px;
-          margin-bottom: 2px;
-        }
-        .measurement-value {
           font-size: 14px;
           font-weight: bold;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .measurements-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+        .measurement-card {
+          background: #f8fafc;
+          padding: 12px;
+          border-radius: 6px;
+          border: 1px solid #e2e8f0;
+          text-align: center;
+          transition: all 0.2s;
+        }
+        .measurement-card:hover {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .measurement-label {
+          font-weight: 600;
+          color: #475569;
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 4px;
+        }
+        .measurement-value {
+          font-size: 18px;
+          font-weight: bold;
           color: #007AFF;
-          margin-bottom: 2px;
+          margin-bottom: 3px;
         }
         .measurement-description {
-          font-size: 7px;
-          color: #666;
-          line-height: 1.1;
+          font-size: 8px;
+          color: #64748b;
+          line-height: 1.2;
         }
-        .info-section {
-          background: #e8f4f8;
-          border-left-color: #17a2b8;
-          font-size: 9px;
-          padding: 8px;
+        .sidebar {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
         }
-        .info-list {
-          margin: 4px 0;
-          padding-left: 0;
-        }
-        .info-item {
-          margin: 2px 0;
-          padding-left: 10px;
-          position: relative;
-        }
-        .info-item:before {
-          content: "•";
-          color: #17a2b8;
-          font-weight: bold;
-          position: absolute;
-          left: 0;
-        }
-        .calibration-info {
-          background: #fff3cd;
-          border-left-color: #ffc107;
-          font-size: 9px;
-          padding: 6px;
-        }
-        .footer {
-          margin-top: 10px;
+        .image-preview {
+          background: white;
+          border: 1px solid #e0e6ed;
+          border-radius: 8px;
+          padding: 10px;
           text-align: center;
-          font-size: 7px;
-          color: #999;
-          border-top: 1px solid #e0e0e0;
-          padding-top: 6px;
-        }
-        .image-section {
-          text-align: center;
-          margin: 10px 0;
         }
         .captured-image {
-          max-width: 100%;
-          max-height: 300px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          width: 100%;
+          max-height: 160px;
+          object-fit: contain;
+          border-radius: 4px;
+          border: 1px solid #e2e8f0;
+        }
+        .calibration-box {
+          background: #fef3e2;
+          border: 1px solid #f59e0b;
+          border-radius: 6px;
+          padding: 10px;
+        }
+        .calibration-title {
+          color: #f59e0b;
+          font-size: 11px;
+          font-weight: 600;
+          margin-bottom: 6px;
+        }
+        .calibration-data {
+          font-size: 9px;
+          color: #92400e;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .info-panel {
+          background: #eff6ff;
+          border: 1px solid #3b82f6;
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 10px;
+        }
+        .info-title {
+          color: #1e40af;
+          font-size: 12px;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 6px;
+          font-size: 8px;
+          color: #1e40af;
+        }
+        .info-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 4px;
+        }
+        .info-bullet {
+          color: #3b82f6;
+          font-weight: bold;
+          margin-top: 1px;
+        }
+        .footer {
+          text-align: center;
+          font-size: 8px;
+          color: #6b7280;
+          border-top: 1px solid #e5e7eb;
+          padding-top: 8px;
+          margin-top: 15px;
+        }
+        .footer-brand {
+          font-weight: 600;
+          color: #007AFF;
+        }
+        .disclaimer {
+          background: #fef2f2;
+          border: 1px solid #fca5a5;
+          color: #dc2626;
+          padding: 6px 10px;
+          border-radius: 4px;
+          font-size: 8px;
+          margin-top: 5px;
+          text-align: center;
         }
       </style>
     </head>
     <body>
-      <div class="header">
-        <h1 class="title">📏 Relatório de Medições para Óculos</h1>
-        <p class="subtitle">Medições precisas para fabricação de lentes</p>
+      <div class="container">
+        <div class="header">
+          <h1>📏 Relatório de Medições Oftálmicas</h1>
+          <p class="subtitle">Medições precisas para fabricação de lentes corretivas</p>
+        </div>
+
         ${
           patientName
-            ? `<p class="patient-name">Paciente: ${patientName}</p>`
-            : ""
+            ? `
+        <div class="patient-info">
+          <div class="patient-name">👤 ${patientName}</div>
+          <div class="date-info">📅 ${currentDate}</div>
+        </div>
+        `
+            : `
+        <div class="patient-info">
+          <div class="patient-name">📋 Relatório de Medições</div>
+          <div class="date-info">📅 ${currentDate}</div>
+        </div>
+        `
         }
-        <p class="date">Gerado em: ${currentDate}</p>
-      </div>
 
-      <div class="section">
-        <h2 class="section-title">📊 Resultados das Medições</h2>
-        <div class="measurement-grid">
-          <div class="measurement-card">
-            <div class="measurement-label">DP Total</div>
-            <div class="measurement-value">${results.dp.toFixed(1)} mm</div>
-            <div class="measurement-description">Distância pupilar total</div>
+        <div class="main-content">
+          <div class="measurements-section">
+            <h2 class="section-title">📊 Resultados das Medições</h2>
+            <div class="measurements-grid">
+              <div class="measurement-card">
+                <div class="measurement-label">DP Total</div>
+                <div class="measurement-value">${results.dp.toFixed(1)} mm</div>
+                <div class="measurement-description">Distância entre centros das pupilas</div>
+              </div>
+              
+              <div class="measurement-card">
+                <div class="measurement-label">DPN Esquerda</div>
+                <div class="measurement-value">${results.dpnLeft.toFixed(
+                  1
+                )} mm</div>
+                <div class="measurement-description">Centro da ponte nasal até pupila esquerda</div>
+              </div>
+              
+              <div class="measurement-card">
+                <div class="measurement-label">DPN Direita</div>
+                <div class="measurement-value">${results.dpnRight.toFixed(
+                  1
+                )} mm</div>
+                <div class="measurement-description">Centro da ponte nasal até pupila direita</div>
+              </div>
+              
+              <div class="measurement-card">
+                <div class="measurement-label">Altura Óptica</div>
+                <div class="measurement-value">${results.heightLeft.toFixed(
+                  1
+                )} | ${results.heightRight.toFixed(1)} mm</div>
+                <div class="measurement-description">Altura das lentes (Esq. | Dir.)</div>
+              </div>
+            </div>
           </div>
-          
-          <div class="measurement-card">
-            <div class="measurement-label">DPN Esq.</div>
-            <div class="measurement-value">${results.dpnLeft.toFixed(
-              1
-            )} mm</div>
-            <div class="measurement-description">Ponte até pupila esquerda</div>
-          </div>
-          
-          <div class="measurement-card">
-            <div class="measurement-label">DPN Dir.</div>
-            <div class="measurement-value">${results.dpnRight.toFixed(
-              1
-            )} mm</div>
-            <div class="measurement-description">Ponte até pupila direita</div>
-          </div>
-          
-          <div class="measurement-card">
-            <div class="measurement-label">Alt. Esq.</div>
-            <div class="measurement-value">${results.heightLeft.toFixed(
-              1
-            )} mm</div>
-            <div class="measurement-description">Altura óptica esquerda</div>
-          </div>
-          
-          <div class="measurement-card">
-            <div class="measurement-label">Alt. Dir.</div>
-            <div class="measurement-value">${results.heightRight.toFixed(
-              1
-            )} mm</div>
-            <div class="measurement-description">Altura óptica direita</div>
+
+          <div class="sidebar">
+            ${
+              capturedImageUri
+                ? `
+            <div class="image-preview">
+              <h3 class="section-title">📸 Imagem Analisada</h3>
+              <img src="data:image/png;base64,${capturedImageUri}" class="captured-image" alt="Análise com marcadores" />
+            </div>
+            `
+                : ""
+            }
+            
+            ${
+              calibrationData
+                ? `
+            <div class="calibration-box">
+              <div class="calibration-title">🎯 Dados de Calibração</div>
+              <div class="calibration-data">
+                <span><strong>Escala:</strong> ${calibrationData.pixelsPerMM.toFixed(
+                  2
+                )} px/mm</span>
+                <span><strong>Pontos:</strong> ${
+                  measurementPoints?.length || 0
+                } marcadores</span>
+              </div>
+            </div>
+            `
+                : ""
+            }
           </div>
         </div>
-      </div>
 
-      ${
-        calibrationData
-          ? `
-      <div class="section calibration-info">
-        <h2 class="section-title">🎯 Informações de Calibração</h2>
-        <p><strong>Escala:</strong> ${calibrationData.pixelsPerMM.toFixed(
-          2
-        )} pixels/mm | <strong>Pontos marcados:</strong> ${
-              measurementPoints?.length || 0
-            }</p>
-      </div>
-      `
-          : ""
-      }
-
-      ${
-        capturedImageUri
-          ? `
-      <div class="section">
-        <h2 class="section-title">📸 Imagem com Marcadores</h2>
-        <div class="image-section">
-          <img src="data:image/png;base64,${capturedImageUri}" class="captured-image" alt="Imagem com marcadores de medição" />
-          <p style="font-size: 9px; color: #666; margin-top: 5px;">
-            Imagem mostrando os pontos de medição marcados durante a análise
-          </p>
+        <div class="info-panel">
+          <div class="info-title">ℹ️ Informações Técnicas</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-bullet">•</span>
+              <span>DP: Essencial para centralização das lentes</span>
+            </div>
+            <div class="info-item">
+              <span class="info-bullet">•</span>
+              <span>DPN: Crítica para lentes progressivas</span>
+            </div>
+            <div class="info-item">
+              <span class="info-bullet">•</span>
+              <span>Altura: Determina conforto visual</span>
+            </div>
+            <div class="info-item">
+              <span class="info-bullet">•</span>
+              <span>Consulte profissional óptico certificado</span>
+            </div>
+          </div>
         </div>
-      </div>
-      `
-          : ""
-      }
 
-      <div class="section info-section">
-        <h2 class="section-title">ℹ️ Informações Importantes</h2>
-        <div class="info-list">
-          <div class="info-item">Medições essenciais para posicionamento correto das lentes</div>
-          <div class="info-item">DP garante centralização das lentes com as pupilas</div>
-          <div class="info-item">DPN crucial para lentes progressivas e bifocais</div>
-          <div class="info-item">Altura óptica assegura conforto visual adequado</div>
-          <div class="info-item">Consulte um profissional óptico para orientações específicas</div>
+        <div class="footer">
+          <p><span class="footer-brand">App de Medição Oftálmica</span> - Tecnologia de precisão para ópticas</p>
+          <div class="disclaimer">
+            ⚠️ Este relatório é para fins informativos. Sempre consulte um profissional óptico qualificado.
+          </div>
         </div>
-      </div>
-
-      <div class="footer">
-        <p>Relatório gerado pelo App de Medição de Óculos</p>
-        <p>⚠️ Para fins informativos. Consulte sempre um profissional óptico.</p>
       </div>
     </body>
     </html>
